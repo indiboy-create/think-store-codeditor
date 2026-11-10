@@ -1,0 +1,343 @@
+* {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    height: 100%;
+}
+
+body.codeditor-page {
+    margin: 0;
+    overflow: hidden;
+    background: #0f1420;
+    color: #e6ebf2;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", "PingFang SC", sans-serif;
+}
+
+.codeditor-shell {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
+
+.codeditor-header {
+    flex: 0 0 64px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 0 20px;
+    background: #151b29;
+    border-bottom: 1px solid #232c3f;
+}
+
+.codeditor-brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+}
+
+.codeditor-brand__logo {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #4d7cff, #7b5cff);
+    color: #fff;
+    font-weight: 700;
+    letter-spacing: 1px;
+    font-size: 14px;
+}
+
+.codeditor-brand__text h1 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 1.3;
+}
+
+.codeditor-brand__text p {
+    margin: 2px 0 0;
+    color: #7f8ca6;
+    font-size: 12px;
+}
+
+.codeditor-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.codeditor-actions .layui-btn {
+    border-radius: 6px;
+}
+
+.codeditor-actions .layui-btn-primary {
+    background: transparent;
+    border-color: #313c54;
+    color: #c3ccdd;
+}
+
+.codeditor-actions .layui-btn-primary:hover {
+    border-color: #4d7cff;
+    color: #fff;
+}
+
+.codeditor-body {
+    display: flex;
+    flex: 1;
+    min-height: 0;
+}
+
+.codeditor-sidebar {
+    display: flex;
+    flex-direction: column;
+    flex: 0 0 280px;
+    min-height: 0;
+    background: #131a27;
+    border-right: 1px solid #232c3f;
+}
+
+.codeditor-sidebar__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 16px 10px;
+    color: #9aa7be;
+    font-size: 13px;
+    letter-spacing: 1px;
+}
+
+.codeditor-badge {
+    min-width: 26px;
+    padding: 1px 8px;
+    border-radius: 10px;
+    background: #223050;
+    color: #7ea2ff;
+    font-size: 12px;
+    text-align: center;
+}
+
+.codeditor-sidebar__search {
+    padding: 0 16px 12px;
+}
+
+.codeditor-search {
+    width: 100%;
+    height: 34px;
+    padding: 0 12px;
+    border: 1px solid #28344a;
+    border-radius: 6px;
+    outline: none;
+    background: #0e1420;
+    color: #dbe3f1;
+    font-size: 13px;
+}
+
+.codeditor-search:focus {
+    border-color: #4d7cff;
+}
+
+.codeditor-list {
+    flex: 1;
+    margin: 0;
+    padding: 0 8px 12px;
+    overflow-y: auto;
+    list-style: none;
+}
+
+.codeditor-list-item {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 10px 12px 10px 14px;
+    margin-bottom: 4px;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.codeditor-list-item:hover {
+    background: #182234;
+}
+
+.codeditor-list-item.is-active {
+    background: #1a2540;
+    border-color: #33538f;
+}
+
+.codeditor-list-item.is-active::before {
+    content: "";
+    position: absolute;
+    left: 4px;
+    top: 12px;
+    bottom: 12px;
+    width: 3px;
+    border-radius: 2px;
+    background: #4d7cff;
+}
+
+.codeditor-list-id {
+    color: #7ea2ff;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.codeditor-list-text {
+    color: #c5cfdf;
+    font-size: 13px;
+    line-height: 1.45;
+    word-break: break-all;
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+
+.codeditor-list-meta {
+    color: #6d7a92;
+    font-size: 11px;
+}
+
+.codeditor-empty {
+    display: none;
+    padding: 24px 16px;
+    color: #6d7a92;
+    font-size: 13px;
+    text-align: center;
+}
+
+.codeditor-main {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 0;
+    min-height: 0;
+    background: #1e1e1e;
+}
+
+.codeditor-toolbar {
+    flex: 0 0 42px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 0 16px;
+    background: #171e2c;
+    border-bottom: 1px solid #232c3f;
+}
+
+.codeditor-toolbar__left,
+.codeditor-toolbar__right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+}
+
+.codeditor-current {
+    overflow: hidden;
+    color: #dbe3f1;
+    font-size: 13px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.codeditor-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #3c4a63;
+    flex-shrink: 0;
+    transition: background 0.15s ease;
+}
+
+.codeditor-dot.is-dirty {
+    background: #ff9f43;
+    box-shadow: 0 0 8px rgba(255, 159, 67, 0.7);
+}
+
+.codeditor-chip {
+    padding: 2px 8px;
+    border: 1px solid #2a3550;
+    border-radius: 10px;
+    color: #8b9bb8;
+    font-size: 11px;
+    white-space: nowrap;
+}
+
+.codeditor-editor {
+    position: relative;
+    flex: 1;
+    min-height: 0;
+}
+
+.codeditor-editor #editor {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    font-size: 14px;
+}
+
+.codeditor-status {
+    flex: 0 0 30px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 16px;
+    background: #111827;
+    border-top: 1px solid #232c3f;
+    color: #7f8ca6;
+    font-size: 12px;
+}
+
+.codeditor-create {
+    padding: 16px 16px 0 0;
+}
+
+.codeditor-form .codeditor-create-content {
+    height: 300px;
+    font-family: Consolas, "Courier New", monospace;
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+.codeditor-tip {
+    margin-top: 6px;
+    color: #8a94a6;
+    font-size: 12px;
+    line-height: 1.6;
+}
+
+@media (max-width: 900px) {
+    .codeditor-sidebar {
+        flex-basis: 210px;
+    }
+
+    .codeditor-brand__text p {
+        display: none;
+    }
+}
+
+@media (max-width: 640px) {
+    .codeditor-header {
+        padding: 0 12px;
+    }
+
+    .codeditor-sidebar {
+        flex-basis: 168px;
+    }
+
+    .codeditor-actions .layui-btn {
+        padding: 0 8px;
+    }
+}

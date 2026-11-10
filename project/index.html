@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>模板代码编辑器 - Think Store Codeditor</title>
+    <link rel="stylesheet" href="theme/layui/css/layui.css">
+    <link rel="stylesheet" href="theme/css/codeditor.css">
+</head>
+<body class="codeditor-page">
+<div class="codeditor-shell" data-api="/codeditor">
+    <header class="codeditor-header">
+        <div class="codeditor-brand">
+            <span class="codeditor-brand__logo">TP</span>
+            <div class="codeditor-brand__text">
+                <h1>模板代码编辑器</h1>
+                <p>ThinkPHP 8 · HTML + PHP · Ace Editor</p>
+            </div>
+        </div>
+        <div class="codeditor-actions">
+            <button type="button" class="layui-btn layui-btn-sm layui-btn-primary" id="btn-refresh">
+                <i class="layui-icon layui-icon-refresh"></i> 刷新列表
+            </button>
+            <button type="button" class="layui-btn layui-btn-sm layui-btn-normal" id="btn-save">
+                <i class="layui-icon layui-icon-ok"></i> 保存模板
+            </button>
+            <button type="button" class="layui-btn layui-btn-sm" id="btn-create">
+                <i class="layui-icon layui-icon-add-1"></i> 新增模板
+            </button>
+        </div>
+    </header>
+
+    <div class="codeditor-body">
+        <aside class="codeditor-sidebar">
+            <div class="codeditor-sidebar__head">
+                <span>模板列表</span>
+                <span class="codeditor-badge" id="tpl-count">0</span>
+            </div>
+            <div class="codeditor-sidebar__search">
+                <input type="text" id="tpl-search" class="codeditor-search" placeholder="按 id 或摘要筛选">
+            </div>
+            <ul class="codeditor-list" id="tpl-list"></ul>
+            <div class="codeditor-empty" id="tpl-empty">暂无模板记录</div>
+        </aside>
+
+        <section class="codeditor-main">
+            <div class="codeditor-toolbar">
+                <div class="codeditor-toolbar__left">
+                    <span class="codeditor-dot" id="dirty-dot"></span>
+                    <span class="codeditor-current" id="current-title">未选择模板</span>
+                </div>
+                <div class="codeditor-toolbar__right">
+                    <span class="codeditor-chip">ace/mode/php</span>
+                    <span class="codeditor-chip" id="char-count">0 字符</span>
+                </div>
+            </div>
+            <div class="codeditor-editor">
+                <div id="editor"></div>
+            </div>
+            <footer class="codeditor-status">
+                <span id="status-msg">就绪</span>
+                <span id="status-meta">行 1，列 1</span>
+            </footer>
+        </section>
+    </div>
+</div>
+
+<script type="text/html" id="create-form-tpl">
+    <div class="codeditor-create">
+        <form class="layui-form codeditor-form" lay-filter="codeditor-create">
+            <div class="layui-form-item">
+                <label class="layui-form-label">模板内容</label>
+                <div class="layui-input-block">
+                    <textarea name="content" class="layui-textarea codeditor-create-content"></textarea>
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">模板文件</label>
+                <div class="layui-input-block">
+                    <input type="text" name="file" class="layui-input" placeholder="可选，例如 default/index.html">
+                    <div class="codeditor-tip">
+                        相对可编辑目录的路径，留空只写入数据库记录；文件路径与扩展名受 config/codeditor.php 限制。
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</script>
+
+<script src="theme/layui/layui.js"></script>
+<script src="theme/ace/ace.js"></script>
+<script>
+(function () {
+    'use strict';
+
+    var shell = document.querySelector('.codeditor-shell');
+    var api = (shell.getAttribute('data-api') || '/codeditor').replace(/\/+$/, '');
+
+    var listEl = document.getElementById('tpl-list');
+    var emptyEl = document.getElementById('tpl-empty');
+    var countEl = document.getElementById('tpl-count');
+    var searchEl = document.getElementById('tpl-search');
+    var currentTitle = document.getElementById('current-title');
+    var statusMsg = document.getElementById('status-msg');
+    var statusMeta = document.getElementById('status-meta');
+    var charCount = document.getElementById('char-count');
+    var dirtyDot = document.getElementById('dirty-dot');
+
+    var state = {
+        items: [],
+        currentId: null,
+        dirty: false,
+        saving: false,
+        creating: false,
+        silent: false
+    };
+
+    var editor = null;
+    var layer = null;
+    var form = null;
+
+    layui.use(['layer', 'form'], function () {
+        layer = layui.layer;
+        form = layui.form;
+        boot();
+    });
+
+    function boot() {
+        initEditor();
+        bindEvents();
+        loadList();
+
+        window.addEventListener('beforeunload', function (event) {
+            if (!state.dirty) {
+                return;
+            }
+
+            event.preventDefault();
+            event.returnValue = '';
+        });
+
+        window.addEventListener('resize', function () {
+            if (editor) {
+                editor.resize();
+            }
+        });
+    }
+
+    function initEditor() {
+        if (!window.ace) {
+            statusMsg.textContent = 'Ace 编辑器加载失败，请检查 theme/ace 目录';
+            return;
+        }
+
+        ace.config.set('basePath', 'theme/ace');
+        ace.config.set('modePath', 'theme/ace');
+        ace.config.set('themePath', 'theme/ace');
+        ace.config.set('workerPath', 'theme/ace');
+
+        editor = ace.edit('editor');
+        editor.setTheme('ace/theme/monokai');
+        editor.session.setMode('ace/mode/php');
+        editor.session.setUseWrapMode(true);
+        editor.setOptions({
+            fontSize: 14,
+            tabSize: 4,
+            useSoftTabs: true,
+            showPrintMargin: false,
+            highlightActiveLine: true,
+            displayIndentGuides: true
+        });
+
+        editor.session.on('change', function () {
+            if (state.silent) {
+                return;
+            }
+
+            markDirty(true);
+            updateStats();
+        });
+
+        editor.selection.on('changeCursor', updateStats);
+
+        editor.commands.addCommand({
+            name: 'saveTemplate',
+            bindKey: { win: 'Ctrl-S', mac: 'Command-S' },
+            exec: function () {
+                saveTemplate();
+            }
+        });
+
+        updateStats();
+    }
+
+    function bindEvents() {
+        document.getElementById('btn-refresh').addEventListener('click', function () {
+            loadList();
+        });
+
+        document.getElementById('btn-save').addEventListener('click', saveTemplate);
+        document.getElementById('btn-create').addEventListener('click', openCreate);
+        searchEl.addEventListener('input', renderList);
+    }
+
+    function request(path, options) {
+        options = options || {};
+
+        var headers = options.headers || {};
+        headers.Accept = 'application/json';
+
+        if (options.body && !headers['Content-Type']) {
+            headers['Content-Type'] = 'application/json';
+        }
+
+        return fetch(api + path, {
+            method: options.method || 'GET',
+            headers: headers,
+            body: options.body,
+            credentials: 'same-origin'
+        }).then(function (response) {
+            return response.json().catch(function () {
+                throw new Error('接口返回格式错误（HTTP ' + response.status + '）');
+            });
+        });
+    }
+
+    function loadList() {
+        setStatus('正在加载模板列表...');
+
+        request('/read').then(function (result) {
+            if (result.code !== 0) {
+                throw new Error(result.msg || '加载模板列表失败');
+            }
+
+            state.items = (result.data && result.data.items) || [];
+            renderList();
+            setStatus('模板列表已加载，共 ' + state.items.length + ' 条');
+        }).catch(function (error) {
+            setStatus(error.message);
+            showError(error.message);
+        });
+    }
+
+    function renderList() {
+        var keyword = (searchEl.value || '').trim().toLowerCase();
+        var items = state.items.filter(function (item) {
+            if (!keyword) {
+                return true;
+            }
+
+            return String(item.id).indexOf(keyword) !== -1
+                || String(item.excerpt || '').toLowerCase().indexOf(keyword) !== -1;
+        });
+
+        listEl.innerHTML = '';
+        countEl.textContent = String(state.items.length);
+        emptyEl.style.display = items.length === 0 ? 'block' : 'none';
+        emptyEl.textContent = state.items.length === 0 ? '暂无模板记录' : '没有匹配的模板';
+
+        items.forEach(function (item) {
+            var li = document.createElement('li');
+            li.className = 'codeditor-list-item' + (item.id === state.currentId ? ' is-active' : '');
+            li.setAttribute('data-id', String(item.id));
+
+            var idEl = document.createElement('span');
+            idEl.className = 'codeditor-list-id';
+            idEl.textContent = '#' + item.id;
+
+            var textEl = document.createElement('span');
+            textEl.className = 'codeditor-list-text';
+            textEl.textContent = item.excerpt || '（空白模板）';
+
+            var metaEl = document.createElement('span');
+            metaEl.className = 'codeditor-list-meta';
+            metaEl.textContent = item.length + ' 字符';
+
+            li.appendChild(idEl);
+            li.appendChild(textEl);
+            li.appendChild(metaEl);
+            li.addEventListener('click', function () {
+                selectTemplate(item.id);
+            });
+
+            listEl.appendChild(li);
+        });
+    }
+
+    function selectTemplate(id) {
+        if (state.currentId === id) {
+            return;
+        }
+
+        if (state.dirty && !window.confirm('当前模板尚未保存，确定切换吗？')) {
+            return;
+        }
+
+        setStatus('正在读取模板 #' + id + '...');
+
+        request('/read?id=' + encodeURIComponent(id)).then(function (result) {
+            if (result.code !== 0) {
+                throw new Error(result.msg || '读取模板失败');
+            }
+
+            var data = result.data || {};
+            state.currentId = data.id;
+            currentTitle.textContent = '模板 #' + data.id;
+            setEditorValue(data.content || '');
+            renderList();
+            setStatus('模板 #' + data.id + ' 已加载');
+
+            if (editor) {
+                editor.focus();
+            }
+        }).catch(function (error) {
+            setStatus(error.message);
+            showError(error.message);
+        });
+    }
+
+    function saveTemplate() {
+        if (state.currentId === null) {
+            layer.msg('请先选择左侧模板', { icon: 0 });
+            return;
+        }
+
+        if (state.saving) {
+            return;
+        }
+
+        state.saving = true;
+        setStatus('正在保存模板 #' + state.currentId + '...');
+
+        request('/update', {
+            method: 'POST',
+            body: JSON.stringify({
+                id: state.currentId,
+                content: editor ? editor.getValue() : ''
+            })
+        }).then(function (result) {
+            if (result.code !== 0) {
+                throw new Error(result.msg || '保存模板失败');
+            }
+
+            markDirty(false);
+            setStatus('模板 #' + state.currentId + ' 已保存');
+            layer.msg('保存成功', { icon: 1, time: 1200 });
+            loadList();
+        }).catch(function (error) {
+            setStatus(error.message);
+            showError(error.message);
+        }).then(function () {
+            state.saving = false;
+        });
+    }
+
+    function openCreate() {
+        var defaultContent = editor ? editor.getValue() : '';
+        var template = document.getElementById('create-form-tpl').innerHTML;
+
+        layer.open({
+            type: 1,
+            title: '新增模板',
+            area: ['760px', '600px'],
+            content: template,
+            btn: ['确定', '取消'],
+            success: function (layero) {
+                layero.find('textarea[name="content"]').val(defaultContent);
+                form.render(null, 'codeditor-create');
+                layero.find('input[name="file"]').focus();
+            },
+            yes: function (index, layero) {
+                if (state.creating) {
+                    return;
+                }
+
+                var content = layero.find('textarea[name="content"]').val();
+                var file = (layero.find('input[name="file"]').val() || '').trim();
+
+                state.creating = true;
+                setStatus('正在新增模板...');
+
+                request('/create', {
+                    method: 'POST',
+                    body: JSON.stringify({ content: content, file: file })
+                }).then(function (result) {
+                    if (result.code !== 0) {
+                        throw new Error(result.msg || '新增模板失败');
+                    }
+
+                    layer.close(index);
+
+                    var message = '新增成功，模板 id=' + result.data.id;
+                    if (result.data.file) {
+                        message += '，文件 ' + result.data.file;
+                    }
+
+                    layer.msg(message, { icon: 1, time: 2000 });
+                    markDirty(false);
+                    state.currentId = null;
+                    loadList();
+                    selectTemplate(result.data.id);
+                }).catch(function (error) {
+                    setStatus(error.message);
+                    showError(error.message);
+                }).then(function () {
+                    state.creating = false;
+                });
+            }
+        });
+    }
+
+    function setEditorValue(value) {
+        if (!editor) {
+            return;
+        }
+
+        state.silent = true;
+        editor.setValue(value, -1);
+        state.silent = false;
+        markDirty(false);
+        updateStats();
+    }
+
+    function markDirty(dirty) {
+        state.dirty = dirty;
+        dirtyDot.className = 'codeditor-dot' + (dirty ? ' is-dirty' : '');
+    }
+
+    function updateStats() {
+        if (!editor) {
+            return;
+        }
+
+        var position = editor.getCursorPosition();
+        var content = editor.getValue();
+
+        statusMeta.textContent = '行 ' + (position.row + 1) + '，列 ' + (position.column + 1);
+        charCount.textContent = content.length + ' 字符';
+    }
+
+    function setStatus(message) {
+        statusMsg.textContent = message;
+    }
+
+    function showError(message) {
+        if (layer) {
+            layer.msg(message, { icon: 2, time: 3000 });
+        }
+    }
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,50 @@
+{
+    "name": "youvision/think-store-codeditor",
+    "description": "ThinkPHP 8 模板代码编辑器实例包，内置基于 Ace 与 layui 的 HTML+PHP 混合模板编辑界面，并提供模板读取、更新、新增路由接口。",
+    "type": "library",
+    "version": "1.0.0",
+    "license": "MIT",
+    "keywords": [
+        "thinkphp",
+        "thinkphp8",
+        "codeditor",
+        "ace",
+        "template",
+        "editor",
+        "store"
+    ],
+    "authors": [
+        {
+            "name": "youvision"
+        }
+    ],
+    "require": {
+        "php": ">=8.0",
+        "topthink/framework": "^8.0",
+        "youvision/think-static": "^1.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Youvision\\ThinkStoreCodeditor\\": "src/"
+        }
+    },
+    "extra": {
+        "think": {
+            "services": [
+                "Youvision\\ThinkStoreCodeditor\\Service"
+            ],
+            "config": {
+                "codeditor": "config/codeditor.php"
+            }
+        }
+    },
+    "config": {
+        "preferred-install": "dist",
+        "sort-packages": true
+    },
+    "scripts": {
+        "test": "@php tests/verify.php"
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}

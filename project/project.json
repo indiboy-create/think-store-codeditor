@@ -1,0 +1,11 @@
+{
+  "version": "1.0.0",
+  "path": "store-codeditor",
+  "map": {
+    "theme": "theme",
+    "view": "view",
+    "index.html": "index.html",
+    "readme.md": "readme.md"
+  },
+  "exclude": ["**/*.map"]
+}
