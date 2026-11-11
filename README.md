@@ -1,3 +1,8 @@
+## ThinkPHP-PanGu - 盘古ThinkPHP开源索引!
+面向 ThinkPHP 的开源工程索引：组件、框架、服务与发布工具，按能力组织，持续整理。
+仓库地址：**<https://github.com/indiboy-create/ThinkPHP-PanGu/>**
+在线站点：**<https://indiboy-create.github.io/ThinkPHP-PanGu/>**
+
 # youvision/think-store-codeditor
 
 ThinkPHP 8 模板代码编辑器实例包：内置基于 [Ace Editor](https://github.com/ajaxorg/ace) 与 layui 的 HTML + PHP 混合代码编辑页面，通过 [`youvision/think-static`](https://github.com/indiboy-create/think-static) 部署到主项目的 `public/store/store-codeditor`，并提供模板读取、更新、新增三个路由接口。
