@@ -9,7 +9,7 @@ use think\Model;
 /**
  * 模板数据表模型。
  *
- * 表名、主键与连接均在运行时由 Templates 服务按配置注入，
+ * 表名与主键均在运行时由 Templates 服务按配置注入，
  * 因此同一个模型可以适配主项目自定义的表结构。
  */
 class Template extends Model
@@ -36,16 +36,10 @@ class Template extends Model
     protected $autoWriteTimestamp = false;
 
     /**
-     * 数据库连接名，空字符串表示使用默认连接。
-     *
-     * @var string
-     */
-    protected $connection = '';
 
-    /**
      * 字段结构缓存。
      *
-     * ThinkORM 4 会在模型构造阶段读取字段结构，因此表名、主键或连接
+     * ThinkORM 4 会在模型构造阶段读取字段结构，因此表名或主键
      * 变化后必须清空该缓存，否则会继续使用旧表的字段白名单。
      *
      * @var array
@@ -53,12 +47,11 @@ class Template extends Model
     protected $schema = [];
 
     /**
-     * @param array|object $data       模型数据
-     * @param string       $table      数据表名，不含前缀
-     * @param string       $key        主键字段名
-     * @param string       $connection 数据库连接名
+     * @param array|object $data  模型数据
+     * @param string       $table 数据表名，不含前缀
+     * @param string       $key   主键字段名
      */
-    public function __construct(array | object $data = [], string $table = '', string $key = '', string $connection = '')
+    public function __construct(array | object $data = [], string $table = '', string $key = '')
     {
         if ($table !== '') {
             $this->name = $table;
@@ -66,10 +59,6 @@ class Template extends Model
 
         if ($key !== '') {
             $this->pk = $key;
-        }
-
-        if ($connection !== '') {
-            $this->connection = $connection;
         }
 
         $this->schema = [];
@@ -99,14 +88,4 @@ class Template extends Model
         return $this;
     }
 
-    /**
-     * 设置数据库连接名。
-     */
-    public function useConnection(string $connection): static
-    {
-        $this->connection = $connection;
-        $this->schema     = [];
-
-        return $this;
-    }
 }

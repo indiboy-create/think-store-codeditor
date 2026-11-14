@@ -15,11 +15,12 @@ class Templates
 {
     protected string $table;
 
+    protected string $categoryTable;
+
     protected string $idField;
 
     protected string $contentField;
 
-    protected string $connection;
 
     protected int $listLimit;
 
@@ -29,11 +30,12 @@ class Templates
     {
         $database = (array) ($config['database'] ?? []);
 
-        $this->table        = $this->identifier((string) ($database['table'] ?? 'template'), 'database.table');
-        $this->idField      = $this->identifier((string) ($database['id_field'] ?? 'id'), 'database.id_field');
-        $this->contentField = $this->identifier((string) ($database['content_field'] ?? 'newstext'), 'database.content_field');
-        $this->connection   = trim((string) ($database['connection'] ?? ''));
-        $this->listLimit    = max(1, (int) ($database['list_limit'] ?? 200));
+        $this->table         = $this->identifier((string) ($database['table'] ?? 'template'), 'database.table');
+        $this->categoryTable = $this->identifier((string) ($database['category_table'] ?? 'template_category'), 'database.category_table');
+        $this->idField       = $this->identifier((string) ($database['id_field'] ?? 'id'), 'database.id_field');
+        $this->contentField  = $this->identifier((string) ($database['content_field'] ?? 'newstext'), 'database.content_field');
+
+        $this->listLimit     = max(1, (int) ($database['list_limit'] ?? 200));
         $this->excerptLength = max(0, (int) ($database['excerpt_length'] ?? 60));
     }
 
@@ -42,7 +44,22 @@ class Templates
      */
     public function model(): Template
     {
-        return new Template([], $this->table, $this->idField, $this->connection);
+        return new Template([], $this->table, $this->idField);
+    }
+
+    /**
+     * 读取启用状态的模板分类，按 sort、id 升序。
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public function categories(): array
+    {
+        return (new TemplateCategory([], $this->categoryTable))
+            ->where('status', 1)
+            ->order('sort', 'asc')
+            ->order('id', 'asc')
+            ->select()
+            ->toArray();
     }
 
     /**

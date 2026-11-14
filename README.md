@@ -28,7 +28,7 @@ php think service:discover
 php think vendor:publish
 ```
 
-发布后主项目会得到 `config/store_codeditor.php`，可直接修改；未发布的配置项使用包内默认值。默认启用访问认证，安装后请在 `auth` 中配置 `session_key` 或 `password`，否则未认证请求会返回 503。路由由 `Youvision\ThinkStoreCodeditor\Service` 在 `boot()` 阶段加载，宿主项目不需要复制路由文件。
+发布后主项目会得到 `config/store_codeditor.php`，可直接修改；未发布的配置项使用包内默认值。路由由 `Youvision\ThinkStoreCodeditor\Service` 在 `boot()` 阶段加载，宿主项目不需要复制路由文件。
 
 ## 路由
 
@@ -38,6 +38,11 @@ php think vendor:publish
 | GET | `/store/think-store-codeditor/read` | 读取模板列表，或按 `id` 读取单条模板 |
 | POST | `/store/think-store-codeditor/update` | 按 `id` 更新模板内容 |
 | POST | `/store/think-store-codeditor/create` | 新增模板记录，可选创建模板文件 |
+| GET | `/store/think-store-codeditor/category` | 渲染模板分类管理页面 |
+| GET | `/store/think-store-codeditor/category/read` | 读取分类列表，或按 `id` 读取单条分类 |
+| POST | `/store/think-store-codeditor/category/create` | 新增分类 |
+| POST | `/store/think-store-codeditor/category/update` | 按 `id` 更新分类 |
+| POST | `/store/think-store-codeditor/category/delete` | 按 `id` 删除分类 |
 | GET | `/store/assets/<path>` | 直接输出包内 `theme/assets`，含 layui、Ace 与页面资源 |
 
 路由前缀由 `config/store_codeditor.php` 的 `route.prefix` 控制，默认 `store`；设为空字符串时地址变为 `/think-store-codeditor/index`、`/think-store-codeditor/read` 等。页面、接口与资源规则分别由 `route.rules` 与 `route.assets` 配置，修改后模板内的地址会自动跟随，不需要手工同步页面文件。
@@ -60,6 +65,8 @@ php think vendor:publish
 - 主编辑区：Ace Editor 的 `ace/mode/php` 模式，支持 HTML + PHP 混合高亮、自动换行、行号与括号匹配
 - 保存模板：按 ID 更新 `newstext`，支持 `Ctrl + S` 快捷键
 - 新增模板：新增一条模板记录，可选填写受限制目录内的文件路径，同时生成模板文件
+- 分类管理：编辑器页右上角进入分类管理，layui 数据表格展示分类，支持新增、编辑、删除
+- 分类字段：分类标题、分类名称、分类图片、分类介绍、排序、状态、最后一级、管理员 ID、站点 ID
 - 未保存状态提示与切换确认
 
 ## 接口
@@ -179,6 +186,63 @@ Content-Type: application/json
 
 `file` 为空时只新增数据库记录，不读写磁盘。文件写入失败时会自动回滚刚插入的数据库记录。
 
+### 分类管理
+
+分类接口与模板接口共用统一的 `{code, msg, data}` 结构，页面入口为 `/store/think-store-codeditor/category`。
+
+读取分类列表：
+
+```http
+GET /store/think-store-codeditor/category/read
+```
+
+响应 `data.items` 为分类数组，字段包含 `id`、`title`、`titlepic`、`name`、`sort`、`status`、`intro`、`is_last`、`admin_id`、`site_id`、`create_time`、`update_time`。
+
+新增分类：
+
+```http
+POST /store/think-store-codeditor/category/create
+Content-Type: application/json
+```
+
+```json
+{
+  "title": "企业模板",
+  "name": "enterprise",
+  "titlepic": "/static/category/enterprise.png",
+  "intro": "企业官网模板分类",
+  "sort": 0,
+  "status": 1,
+  "is_last": 0,
+  "admin_id": 1,
+  "site_id": 1
+}
+```
+
+`title` 与 `name` 至少填写一个，其余字段可选。创建时间与更新时间由服务自动写入。
+
+更新分类：
+
+```http
+POST /store/think-store-codeditor/category/update
+Content-Type: application/json
+```
+
+请求体在新增字段基础上增加 `id`，例如 `{"id": 1, "title": "企业模板"}`。
+
+删除分类：
+
+```http
+POST /store/think-store-codeditor/category/delete
+Content-Type: application/json
+```
+
+```json
+{ "id": 1 }
+```
+
+`id` 不存在时返回 HTTP 404 与 `code: 1`。
+
 ## 数据表
 
 默认读取 `template` 表，最少需要 `id` 与 `newstext` 两个字段：
@@ -191,6 +255,31 @@ CREATE TABLE `template` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='模板数据表';
 ```
 
+模板分类表 `template_category` 用于维护模板分类，模板表的 `cid` 字段对应分类表主键：
+
+```sql
+CREATE TABLE `template_category` (
+  `id` int unsigned NOT NULL AUTO_INCREMENT COMMENT '分类id',
+  `title` varchar(255) NOT NULL DEFAULT '' COMMENT '分类标题',
+  `titlepic` varchar(255) NOT NULL DEFAULT '' COMMENT '分类图片',
+  `name` varchar(100) NOT NULL DEFAULT '' COMMENT '分类名称',
+  `sort` int unsigned NOT NULL DEFAULT 0 COMMENT '排序',
+  `status` tinyint unsigned NOT NULL DEFAULT 1 COMMENT '状态：1启用，0禁用',
+  `intro` varchar(500) NOT NULL DEFAULT '' COMMENT '分类介绍',
+  `is_last` tinyint unsigned NOT NULL DEFAULT 0 COMMENT '是否最后一级：1是，0否',
+  `admin_id` int unsigned NOT NULL DEFAULT 0 COMMENT '管理员id',
+  `site_id` int unsigned NOT NULL DEFAULT 0 COMMENT '站点id',
+  `create_time` int unsigned NOT NULL DEFAULT 0 COMMENT '创建时间',
+  `update_time` int unsigned NOT NULL DEFAULT 0 COMMENT '更新时间',
+  PRIMARY KEY (`id`),
+  KEY `status` (`status`),
+  KEY `sort` (`sort`),
+  KEY `site_id` (`site_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='模板分类表';
+```
+
+分类表名由 `database.category_table` 配置，可通过 `$templates->categories()` 读取启用分类。
+
 表名、字段名全部可配置，见下文 `database` 配置。
 
 ## 配置
@@ -201,49 +290,37 @@ CREATE TABLE `template` (
 | --- | --- | --- |
 | `route.enabled` | `true` | 是否随服务自动注册页面、接口与资源路由；关闭后可在主项目 `route` 目录自行注册 |
 | `route.prefix` | `store` | 路由前缀，留空表示不带前缀 |
-| `route.middleware` | `[Auth::class]` | 应用到整组路由上的中间件；默认启用包内 `Auth`，可替换为主项目鉴权中间件 |
+| `route.middleware` | `[]` | 应用到整组路由上的中间件，可填写主项目鉴权中间件类名或别名 |
 | `route.rules.index` | `think-store-codeditor/index` | 编辑器页面规则，注册为 GET |
 | `route.rules.read` | `think-store-codeditor/read` | 读取接口规则，注册为 GET |
 | `route.rules.update` | `think-store-codeditor/update` | 更新接口规则，注册为 POST |
 | `route.rules.create` | `think-store-codeditor/create` | 新增接口规则，注册为 POST |
+| `route.rules.category` | `think-store-codeditor/category` | 分类管理页面规则，注册为 GET |
+| `route.rules.category_read` | `think-store-codeditor/category/read` | 分类读取接口规则，注册为 GET |
+| `route.rules.category_create` | `think-store-codeditor/category/create` | 分类新增接口规则，注册为 POST |
+| `route.rules.category_update` | `think-store-codeditor/category/update` | 分类更新接口规则，注册为 POST |
+| `route.rules.category_delete` | `think-store-codeditor/category/delete` | 分类删除接口规则，注册为 POST |
 | `route.assets` | `assets` | 静态资源规则前缀，最终地址为 `/{prefix}/{assets}/<path>` |
 
 `route.rules` 与 `route.assets` 不能为空且不能重复，否则路由文件不会注册。
 
-### auth 访问认证
-
-页面、接口与静态资源路由默认经过包内 `Auth` 中间件。主项目已有登录系统时配置 `session_key`；否则使用 HTTP Basic Auth。
-
-| 配置项 | 默认值 | 说明 |
-| --- | --- | --- |
-| `auth.enabled` | `true` | 是否启用认证；`false` 时 `Auth` 中间件直接放行 |
-| `auth.session_key` | 空字符串 | 主项目登录态 Session 键，值为真时放行，例如 `admin_id` |
-| `auth.username` | `admin` | HTTP Basic Auth 用户名 |
-| `auth.password` | 空字符串 | HTTP Basic Auth 密码；留空时未命中 Session 的请求返回 503 |
-| `auth.realm` | `Think Store Codeditor` | Basic Auth 提示域 |
-
-认证规则：
-
-- 配置 `session_key` 且 Session 值为真时直接放行
-- 未命中 Session 时使用 HTTP Basic Auth 校验 `username` 与 `password`
-- `password` 为空时拒绝访问并提示配置，避免默认弱口令
-- 页面请求返回纯文本，接口请求（`Accept: application/json`）返回 JSON
-- 401 响应带 `WWW-Authenticate`，浏览器会弹出登录框
-- 需要接入主项目自定义鉴权时，可将 `route.middleware` 替换为主项目中间件，或设置 `auth.enabled=false` 后自行保护路由
 
 ### database 数据库
 
 | 配置项 | 默认值 | 说明 |
 | --- | --- | --- |
-| `database.connection` | 空字符串 | 数据库连接名，留空使用主项目默认连接 |
 | `database.table` | `template` | 模板数据表名，不含表前缀，框架自动拼接 |
+| `database.category_table` | `template_category` | 分类数据表名，不含表前缀，框架自动拼接 |
 | `database.id_field` | `id` | 模板主键字段名 |
+| `database.cid_field` | `cid` | 分类 id 字段名 |
+| `database.title_field` | `title` | 模板标题字段名 |
+| `database.intro_field` | `intro` | 模板介绍字段名 |
 | `database.path_field` | `path` | 模板主输出路径字段名 |
 | `database.content_field` | `newstext` | 模板内容字段名 |
 | `database.list_limit` | `200` | 模板列表接口最多返回的记录数，避免大表拖慢页面 |
 | `database.excerpt_length` | `60` | 列表摘要最大字符数，`0` 表示不截断 |
 
-`table`、`id_field`、`path_field`、`content_field` 只允许英文、数字与下划线，避免配置拼接注入。
+`table`、`id_field`、`cid_field`、`title_field`、`intro_field`、`path_field`、`content_field` 只允许英文、数字与下划线，避免配置拼接注入。
 
 ### file 可编辑目录
 
@@ -269,13 +346,14 @@ CREATE TABLE `template` (
 
 ### Service 配置合并
 
-包启动时会自动合并包内默认配置与主项目 `config/store_codeditor.php`，主项目配置优先。`file.allow_dirs`、`file.ext` 与 `route.middleware` 为列表型配置，主项目配置会整体覆盖默认值，不会与默认值混合。修改配置后清除 `runtime` 缓存即可生效。
+包启动时会自动合并包内默认配置与主项目 `config/store_codeditor.php`，主项目配置优先。`file.allow_dirs` 与 `file.ext` 为列表型配置，主项目配置会整体覆盖默认值，不会与默认值混合。修改配置后清除 `runtime` 缓存即可生效。
 
 ## PHP 调用
 
 服务注册后，可通过容器获取 `Templates` 与 `PathGuard`：
 
 ```php
+use Youvision\ThinkStoreCodeditor\Categories;
 use Youvision\ThinkStoreCodeditor\PathGuard;
 use Youvision\ThinkStoreCodeditor\Templates;
 
@@ -287,14 +365,20 @@ $templates = app(Templates::class);
 $guard = app(PathGuard::class);
 // 也可使用别名：app('codeditor.path_guard')
 
+/** @var Categories $categories */
+$categories = app(Categories::class);
+// 也可使用别名：app('codeditor.categories')
+
 $list = $templates->lists();
+$categories->lists();
 ```
 
-两个类都支持脱离容器使用：
+这些类都支持脱离容器使用：
 
 ```php
-$templates = new Templates((array) config('store_codeditor'));
-$guard     = new PathGuard((array) config('store_codeditor.file'), app()->getRootPath());
+$templates  = new Templates((array) config('store_codeditor'));
+$categories = new Categories((array) config('store_codeditor'));
+$guard      = new PathGuard((array) config('store_codeditor.file'), app()->getRootPath());
 ```
 
 ## 目录结构
@@ -308,20 +392,23 @@ think-store-codeditor/
 │  └─ store_codeditor.php        # 页面、接口与资源路由
 ├─ src/
 │  ├─ Service.php                # ThinkPHP 服务注册
-│  ├─ CodeditorController.php     # 页面渲染与读取、更新、新增接口
+│  ├─ CodeditorController.php     # 模板页面与读取、更新、新增接口
+│  ├─ CategoryController.php      # 分类页面与增改删接口
 │  ├─ AssetController.php         # 包内静态资源输出
 │  ├─ View.php                   # 包内模板渲染器
 │  ├─ Templates.php              # 模板数据仓储
+│  ├─ Categories.php             # 分类数据仓储
 │  ├─ Template.php               # 模板数据模型
-│  ├─ PathGuard.php              # 模板文件路径守卫
-│  └─ middleware/
-│     └─ Auth.php                # 访问认证中间件
+│  ├─ TemplateCategory.php       # 模板分类模型
+│  └─ PathGuard.php              # 模板文件路径守卫
 ├─ theme/
 │  ├─ view/
-│  │  └─ index.html              # 编辑器页面模板
+│  │  ├─ index.html              # 编辑器页面模板
+│  │  └─ category.html           # 分类管理页面模板
 │  └─ assets/
 │     ├─ css/index.css           # 页面自定义样式
-│     ├─ js/codeditor.js         # 页面脚本
+│     ├─ js/codeditor.js         # 编辑器页面脚本
+│     ├─ js/category.js          # 分类管理页面脚本
 │     ├─ ace/                    # Ace Editor 本地资源
 │     └─ layui/                  # layui 本地资源
 ├─ tests/
@@ -337,7 +424,7 @@ think-store-codeditor/
 
 ## 安全建议
 
-- 保持 `auth.enabled=true`，并配置 `auth.password` 或 `auth.session_key`，避免模板被匿名读取或修改
+- 为 `route.middleware` 配置主项目鉴权中间件，避免模板被匿名读取或修改
 - 生产环境保持 `file.overwrite=false`，并只开放必要的可编辑目录
 - 明确 `file.ext` 白名单，不要加入 `js`、`exe` 等可执行或脚本类型
 - `file.root` 与 `file.allow_dirs` 建议指向模板目录，不要指向项目根目录或 `public`

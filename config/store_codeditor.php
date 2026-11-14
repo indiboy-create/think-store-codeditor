@@ -15,11 +15,9 @@ return [
         // 路由前缀，留空表示不添加前缀，例如 store、api/store
         'prefix' => 'store',
 
-        // 应用到整组路由上的中间件，默认启用包内 Auth
-        // 需要接入主项目鉴权时可替换为 [\app\middleware\Auth::class]
-        'middleware' => [
-            \Youvision\ThinkStoreCodeditor\middleware\Auth::class,
-        ],
+        // 应用到整组路由上的中间件，例如 [\app\middleware\Auth::class]
+        // 生产环境请接入主项目鉴权中间件，避免模板被匿名修改
+        'middleware' => [],
 
         // 页面、接口与资源路由规则，均相对于 prefix
         'rules' => [
@@ -34,6 +32,21 @@ return [
 
             // 新增接口，POST 请求；新增模板记录，可选同时创建模板文件
             'create' => 'think-store-codeditor/create',
+
+            // 分类管理页面，GET 请求
+            'category' => 'think-store-codeditor/category',
+
+            // 分类列表接口，GET 请求；带 id 读取单条
+            'category_read' => 'think-store-codeditor/category/read',
+
+            // 分类新增接口，POST 请求
+            'category_create' => 'think-store-codeditor/category/create',
+
+            // 分类更新接口，POST 请求
+            'category_update' => 'think-store-codeditor/category/update',
+
+            // 分类删除接口，POST 请求
+            'category_delete' => 'think-store-codeditor/category/delete',
         ],
 
         // 包内静态资源规则前缀，最终地址为 /{prefix}/{assets}/<path>
@@ -42,44 +55,30 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | 访问认证
-    |--------------------------------------------------------------------------
-    | 页面、接口与静态资源路由默认经过包内 Auth 中间件。
-    | 主项目已有登录系统时配置 session_key；否则使用 HTTP Basic Auth。
-    */
-    'auth' => [
-        // 是否启用访问认证；false 时 Auth 中间件直接放行
-        'enabled' => true,
 
-        // 主项目登录态 Session 键，值为真时放行，例如 admin_id
-        'session_key' => '',
-
-        // HTTP Basic Auth 用户名
-        'username' => 'admin',
-
-        // HTTP Basic Auth 密码；留空时未命中 Session 的请求返回 503
-        'password' => '',
-
-        // Basic Auth 提示域
-        'realm' => 'Think Store Codeditor',
-    ],
-
-    /*
-    |--------------------------------------------------------------------------
     | 模板数据表
     |--------------------------------------------------------------------------
     | 读取和写入的数据源，字段名可自由映射，默认读取 template 表的
     | id 与 newstext 字段。表名不含数据库前缀，由框架自动拼接。
     */
     'database' => [
-        // 数据库连接名，留空使用主项目默认连接（database.default）
-        'connection' => '',
-
         // 模板数据表名，不含表前缀
         'table' => 'template',
 
+        // 分类数据表名，不含表前缀
+        'category_table' => 'template_category',
+
         // 模板主键字段名
         'id_field' => 'id',
+
+        // 分类 id 字段名
+        'cid_field' => 'cid',
+
+        // 模板标题字段名
+        'title_field' => 'title',
+
+        // 模板介绍字段名
+        'intro_field' => 'intro',
 
         // 模板主输出路径
         'path_field' => 'path',

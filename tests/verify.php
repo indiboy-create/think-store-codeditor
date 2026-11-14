@@ -61,16 +61,20 @@ $requiredFiles = [
     'config/store_codeditor.php',
     'route/store_codeditor.php',
     'src/AssetController.php',
+    'src/Categories.php',
+    'src/CategoryController.php',
     'src/CodeditorController.php',
-    'src/middleware/Auth.php',
     'src/PathGuard.php',
     'src/Service.php',
     'src/Template.php',
+    'src/TemplateCategory.php',
     'src/Templates.php',
     'src/View.php',
     'theme/view/index.html',
+    'theme/view/category.html',
     'theme/assets/css/index.css',
     'theme/assets/js/codeditor.js',
+    'theme/assets/js/category.js',
     'theme/assets/ace/ace.js',
     'theme/assets/ace/mode-php.js',
     'theme/assets/ace/theme-monokai.js',
@@ -93,30 +97,29 @@ $config     = is_file($configFile) ? require $configFile : [];
 
 $check(($config['route']['enabled'] ?? null) === true, '默认应启用内置路由');
 $check(($config['route']['prefix'] ?? '') === 'store', '默认路由前缀应为 store');
-$check(
-    ($config['route']['middleware'] ?? null) === [\Youvision\ThinkStoreCodeditor\middleware\Auth::class],
-    '默认路由中间件应包含包内 Auth'
-);
+$check(($config['route']['middleware'] ?? null) === [], '默认路由中间件应为空数组');
 $check(
     ($config['route']['rules'] ?? []) === [
         'index'  => 'think-store-codeditor/index',
         'read'   => 'think-store-codeditor/read',
         'update' => 'think-store-codeditor/update',
         'create' => 'think-store-codeditor/create',
+        'category'        => 'think-store-codeditor/category',
+        'category_read'   => 'think-store-codeditor/category/read',
+        'category_create' => 'think-store-codeditor/category/create',
+        'category_update' => 'think-store-codeditor/category/update',
+        'category_delete' => 'think-store-codeditor/category/delete',
     ],
-    '默认路由规则应为 think-store-codeditor/index、read、update、create'
+    '默认路由规则应包含模板与分类页面、接口'
 );
 $check(($config['route']['assets'] ?? '') === 'assets', '默认静态资源规则前缀应为 assets');
 
-$check(($config['auth']['enabled'] ?? null) === true, '默认应启用访问认证');
-$check(($config['auth']['session_key'] ?? null) === '', '默认不绑定 Session 键');
-$check(($config['auth']['username'] ?? '') === 'admin', '默认 Basic Auth 用户名应为 admin');
-$check(($config['auth']['password'] ?? null) === '', '默认访问密码应为空，安装后需配置');
-$check(($config['auth']['realm'] ?? '') === 'Think Store Codeditor', '默认 Basic Auth 域应为 Think Store Codeditor');
-
-$check(($config['database']['connection'] ?? null) === '', '默认应使用主项目默认数据库连接');
 $check(($config['database']['table'] ?? '') === 'template', '默认模板数据表应为 template');
+$check(($config['database']['category_table'] ?? '') === 'template_category', '默认分类数据表应为 template_category');
 $check(($config['database']['id_field'] ?? '') === 'id', '默认模板主键字段应为 id');
+$check(($config['database']['cid_field'] ?? '') === 'cid', '默认分类字段应为 cid');
+$check(($config['database']['title_field'] ?? '') === 'title', '默认标题字段应为 title');
+$check(($config['database']['intro_field'] ?? '') === 'intro', '默认介绍字段应为 intro');
 $check(($config['database']['content_field'] ?? '') === 'newstext', '默认模板内容字段应为 newstext');
 $check(($config['database']['list_limit'] ?? 0) === 200, '默认列表上限应为 200');
 $check(($config['database']['excerpt_length'] ?? 0) === 60, '默认摘要长度应为 60');
@@ -140,6 +143,12 @@ $check(str_contains($routeSource, 'middleware($middleware)'), '路由应应用�
 $check(str_contains($routeSource, 'Route::group($prefix, $register)'), '路由应统一按前缀分组注册');
 $check(!str_contains($routeSource, "if (\$prefix === '')"), '空前缀时也应走分组并应用中间件');
 $check(str_contains($routeSource, 'CodeditorController::class'), '路由应指向 CodeditorController');
+$check(str_contains($routeSource, "Route::get(\$category,"), '路由应注册分类页面');
+$check(str_contains($routeSource, "Route::get(\$categoryRead,"), '路由应注册分类读取接口');
+$check(str_contains($routeSource, "Route::post(\$categoryCreate,"), '路由应注册分类新增接口');
+$check(str_contains($routeSource, "Route::post(\$categoryUpdate,"), '路由应注册分类更新接口');
+$check(str_contains($routeSource, "Route::post(\$categoryDelete,"), '路由应注册分类删除接口');
+$check(str_contains($routeSource, 'CategoryController::class'), '路由应指向 CategoryController');
 $check(str_contains($routeSource, "config('store_codeditor.route'"), '路由应读取 store_codeditor.route 配置');
 
 $serviceSource = (string) file_get_contents($packageRoot . '/src/Service.php');
@@ -147,6 +156,7 @@ $check(str_contains($serviceSource, 'loadRoutesFrom'), '服务应在 boot 阶段
 $check(str_contains($serviceSource, 'mergeConfig'), '服务应合并包内默认配置');
 $check(str_contains($serviceSource, 'array_replace_recursive'), '服务应深度合并配置');
 $check(str_contains($serviceSource, "bind('codeditor.templates'"), '服务应绑定 Templates');
+$check(str_contains($serviceSource, "bind('codeditor.categories'"), '服务应绑定 Categories');
 $check(str_contains($serviceSource, "bind('codeditor.path_guard'"), '服务应绑定 PathGuard');
 $check(str_contains($serviceSource, 'instance(View::class'), '服务应注册包内视图渲染器');
 $check(str_contains($serviceSource, 'getRootPath'), '服务应使用主项目根目录');
@@ -164,6 +174,23 @@ $check(str_contains($controllerSource, 'store_codeditor.file.enabled'), '控制�
 $check(str_contains($controllerSource, 'InstalledVersions'), '控制器应从 Composer 运行时读取版本');
 $check(str_contains($controllerSource, "'dev'"), '控制器应提供开发版本回退');
 
+$categorySource = (string) file_get_contents($packageRoot . '/src/TemplateCategory.php');
+$check(str_contains($categorySource, 'extends Model'), '分类模型应继承 think\Model');
+$check(str_contains($categorySource, "'template_category'"), '分类模型默认表名应为 template_category');
+
+$categoriesSource = (string) file_get_contents($packageRoot . '/src/Categories.php');
+$check(str_contains($categoriesSource, 'function payload'), '分类仓储应过滤写入字段');
+$check(str_contains($categoriesSource, "'titlepic'"), '分类仓储应支持 titlepic 字段');
+$check(str_contains($categoriesSource, "'is_last'"), '分类仓储应支持 is_last 字段');
+
+$categoryControllerSource = (string) file_get_contents($packageRoot . '/src/CategoryController.php');
+$check(str_contains($categoryControllerSource, 'function index'), '分类控制器应实现页面');
+$check(str_contains($categoryControllerSource, 'function read'), '分类控制器应实现读取接口');
+$check(str_contains($categoryControllerSource, 'function create'), '分类控制器应实现新增接口');
+$check(str_contains($categoryControllerSource, 'function update'), '分类控制器应实现更新接口');
+$check(str_contains($categoryControllerSource, 'function delete'), '分类控制器应实现删除接口');
+$check(str_contains($categoryControllerSource, 'category_delete'), '分类控制器应生成删除接口地址');
+
 $viewSource = (string) file_get_contents($packageRoot . '/src/View.php');
 $check(str_contains($viewSource, 'use think\\view\\driver\\Think'), '渲染器应使用 think-view 模板驱动');
 $check(str_contains($viewSource, "'view_path'"), '渲染器应指定模板目录');
@@ -177,6 +204,7 @@ $check(str_contains($viewSource, 'PATHINFO_EXTENSION'), '渲染器应补全模�
 
 $templatesSource = (string) file_get_contents($packageRoot . '/src/Templates.php');
 $check(str_contains($templatesSource, 'new Template('), 'Templates 应使用 Template 模型查询');
+$check(str_contains($templatesSource, 'function categories'), 'Templates 应提供分类读取方法');
 $check(!str_contains($templatesSource, 'Db::'), 'Templates 不应使用 Db 原生查询');
 $check(str_contains($templatesSource, 'getAttr'), 'Templates 应通过模型读取字段');
 $check(str_contains($templatesSource, 'setAttr'), 'Templates 应通过模型写入字段');
@@ -193,6 +221,7 @@ $check(str_contains($pageSource, '{$endpoints.update}'), '编辑器页面应使�
 $check(str_contains($pageSource, '{$endpoints.create}'), '编辑器页面应使用新增接口地址');
 $check(str_contains($pageSource, 'id="tpl-table"'), '编辑器页面应包含 layui 数据表格容器');
 $check(str_contains($pageSource, 'lay-filter="tpl-table"'), '编辑器页面应配置 layui 表格过滤器');
+$check(str_contains($pageSource, '{$categoryUrl}'), '编辑器页面应包含分类管理入口');
 $check(str_contains($pageSource, '{$version}'), '编辑器页面应输出版本号');
 $check(!str_contains($pageSource, 'cdn.'), '编辑器页面不应引用 CDN 资源');
 $check(!str_contains($pageSource, 'unpkg'), '编辑器页面不应引用 unpkg 资源');
@@ -208,9 +237,27 @@ $check(str_contains($scriptSource, 'aceBase'), '页面脚本应使用 assets 路
 $check(!str_contains($scriptSource, "'/codeditor'"), '页面脚本不应写死旧接口前缀');
 $check(!str_contains($scriptSource, 'cdn.'), '页面脚本不应引用 CDN 资源');
 
+$categoryPageSource = (string) file_get_contents($packageRoot . '/theme/view/category.html');
+$check(str_contains($categoryPageSource, 'window.CODEDITOR_CATEGORY'), '分类页面应注入接口配置');
+$check(str_contains($categoryPageSource, '{$endpoints.read}'), '分类页面应使用读取接口地址');
+$check(str_contains($categoryPageSource, '{$endpoints.create}'), '分类页面应使用新增接口地址');
+$check(str_contains($categoryPageSource, '{$endpoints.update}'), '分类页面应使用更新接口地址');
+$check(str_contains($categoryPageSource, '{$endpoints.delete}'), '分类页面应使用删除接口地址');
+$check(str_contains($categoryPageSource, 'id="category-table"'), '分类页面应包含 layui 数据表格容器');
+$check(str_contains($categoryPageSource, 'lay-filter="category-table"'), '分类页面应配置 layui 表格过滤器');
+$check(str_contains($categoryPageSource, '{$editorUrl}'), '分类页面应包含返回编辑器入口');
+
+$categoryScriptSource = (string) file_get_contents($packageRoot . '/theme/assets/js/category.js');
+$check(str_contains($categoryScriptSource, "layui.use(['table', 'layer', 'form']"), '分类脚本应加载 layui table、layer 与 form');
+$check(str_contains($categoryScriptSource, 'table.render'), '分类脚本应渲染 layui 数据表格');
+$check(str_contains($categoryScriptSource, "table.on('tool(category-table)'"), '分类脚本应处理表格操作');
+$check(str_contains($categoryScriptSource, 'layer.confirm'), '分类脚本应提供删除确认');
+$check(str_contains($categoryScriptSource, 'fetch('), '分类脚本应使用 fetch 请求接口');
+
 $styleSource = (string) file_get_contents($packageRoot . '/theme/assets/css/index.css');
 $check(str_contains($styleSource, '--codeditor-brand'), '样式应定义主题变量');
 $check(str_contains($styleSource, '.codeditor-table'), '样式应包含 layui 表格区域');
+$check(str_contains($styleSource, '.codeditor-admin__body'), '样式应包含分类管理页布局');
 $check(str_contains($styleSource, '@media (max-width: 820px)'), '样式应包含响应式断点');
 $check(str_contains($styleSource, '@media (max-width: 640px)'), '样式应包含移动端布局');
 $check(!str_contains($styleSource, 'cdn'), '样式不应依赖 CDN 资源');

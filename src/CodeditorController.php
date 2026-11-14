@@ -27,9 +27,10 @@ class CodeditorController
     public function index(): string
     {
         return $this->view->render('index', [
-            'api'       => $this->apiPrefix(),
-            'endpoints' => $this->endpoints(),
-            'version'   => $this->version(),
+            'api'         => $this->apiPrefix(),
+            'endpoints'   => $this->endpoints(),
+            'categoryUrl' => $this->ruleUrl('category', 'think-store-codeditor/category'),
+            'version'     => $this->version(),
         ]);
     }
 
