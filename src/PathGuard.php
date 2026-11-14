@@ -49,7 +49,7 @@ class PathGuard
         $relative = $this->normalizeRelative($file);
 
         if ($this->allowDirs === []) {
-            throw new InvalidArgumentException('未配置可编辑目录（codeditor.file.allow_dirs）');
+            throw new InvalidArgumentException('未配置可编辑目录（store_codeditor.file.allow_dirs）');
         }
 
         if (!$this->insideAllowed($relative)) {
@@ -118,7 +118,7 @@ class PathGuard
     protected function rootPath(): string
     {
         if ($this->root === '') {
-            throw new InvalidArgumentException('未配置模板根目录（codeditor.file.root）');
+            throw new InvalidArgumentException('未配置模板根目录（store_codeditor.file.root）');
         }
 
         $root = $this->root;

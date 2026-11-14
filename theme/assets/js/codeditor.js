@@ -1,103 +1,14 @@
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>模板代码编辑器 - Think Store Codeditor</title>
-    <link rel="stylesheet" href="theme/layui/css/layui.css">
-    <link rel="stylesheet" href="theme/css/codeditor.css">
-</head>
-<body class="codeditor-page">
-<div class="codeditor-shell" data-api="/codeditor">
-    <header class="codeditor-header">
-        <div class="codeditor-brand">
-            <span class="codeditor-brand__logo">TP</span>
-            <div class="codeditor-brand__text">
-                <h1>模板代码编辑器</h1>
-                <p>ThinkPHP 8 · HTML + PHP · Ace Editor</p>
-            </div>
-        </div>
-        <div class="codeditor-actions">
-            <button type="button" class="layui-btn layui-btn-sm layui-btn-primary" id="btn-refresh">
-                <i class="layui-icon layui-icon-refresh"></i> 刷新列表
-            </button>
-            <button type="button" class="layui-btn layui-btn-sm layui-btn-normal" id="btn-save">
-                <i class="layui-icon layui-icon-ok"></i> 保存模板
-            </button>
-            <button type="button" class="layui-btn layui-btn-sm" id="btn-create">
-                <i class="layui-icon layui-icon-add-1"></i> 新增模板
-            </button>
-        </div>
-    </header>
-
-    <div class="codeditor-body">
-        <aside class="codeditor-sidebar">
-            <div class="codeditor-sidebar__head">
-                <span>模板列表</span>
-                <span class="codeditor-badge" id="tpl-count">0</span>
-            </div>
-            <div class="codeditor-sidebar__search">
-                <input type="text" id="tpl-search" class="codeditor-search" placeholder="按 id 或摘要筛选">
-            </div>
-            <ul class="codeditor-list" id="tpl-list"></ul>
-            <div class="codeditor-empty" id="tpl-empty">暂无模板记录</div>
-        </aside>
-
-        <section class="codeditor-main">
-            <div class="codeditor-toolbar">
-                <div class="codeditor-toolbar__left">
-                    <span class="codeditor-dot" id="dirty-dot"></span>
-                    <span class="codeditor-current" id="current-title">未选择模板</span>
-                </div>
-                <div class="codeditor-toolbar__right">
-                    <span class="codeditor-chip">ace/mode/php</span>
-                    <span class="codeditor-chip" id="char-count">0 字符</span>
-                </div>
-            </div>
-            <div class="codeditor-editor">
-                <div id="editor"></div>
-            </div>
-            <footer class="codeditor-status">
-                <span id="status-msg">就绪</span>
-                <span id="status-meta">行 1，列 1</span>
-            </footer>
-        </section>
-    </div>
-</div>
-
-<script type="text/html" id="create-form-tpl">
-    <div class="codeditor-create">
-        <form class="layui-form codeditor-form" lay-filter="codeditor-create">
-            <div class="layui-form-item">
-                <label class="layui-form-label">模板内容</label>
-                <div class="layui-input-block">
-                    <textarea name="content" class="layui-textarea codeditor-create-content"></textarea>
-                </div>
-            </div>
-            <div class="layui-form-item">
-                <label class="layui-form-label">模板文件</label>
-                <div class="layui-input-block">
-                    <input type="text" name="file" class="layui-input" placeholder="可选，例如 default/index.html">
-                    <div class="codeditor-tip">
-                        相对可编辑目录的路径，留空只写入数据库记录；文件路径与扩展名受 config/codeditor.php 限制。
-                    </div>
-                </div>
-            </div>
-        </form>
-    </div>
-</script>
-
-<script src="theme/layui/layui.js"></script>
-<script src="theme/ace/ace.js"></script>
-<script>
 (function () {
     'use strict';
 
-    var shell = document.querySelector('.codeditor-shell');
-    var api = (shell.getAttribute('data-api') || '/codeditor').replace(/\/+$/, '');
+    var config = window.CODEDITOR_CONFIG || {};
+    var api = (config.api || '').replace(/\/+$/, '');
+    var readUrl = config.read || (api + '/think-store-codeditor/read');
+    var updateUrl = config.update || (api + '/think-store-codeditor/update');
+    var createUrl = config.create || (api + '/think-store-codeditor/create');
+    var aceBase = (api || '') + '/assets/ace';
 
-    var listEl = document.getElementById('tpl-list');
-    var emptyEl = document.getElementById('tpl-empty');
+    var tableEl = document.getElementById('tpl-table');
     var countEl = document.getElementById('tpl-count');
     var searchEl = document.getElementById('tpl-search');
     var currentTitle = document.getElementById('current-title');
@@ -112,14 +23,17 @@
         dirty: false,
         saving: false,
         creating: false,
-        silent: false
+        silent: false,
+        table: null
     };
 
     var editor = null;
     var layer = null;
     var form = null;
+    var table = null;
 
-    layui.use(['layer', 'form'], function () {
+    layui.use(['table', 'layer', 'form'], function () {
+        table = layui.table;
         layer = layui.layer;
         form = layui.form;
         boot();
@@ -148,14 +62,14 @@
 
     function initEditor() {
         if (!window.ace) {
-            statusMsg.textContent = 'Ace 编辑器加载失败，请检查 theme/ace 目录';
+            setStatus('Ace 编辑器加载失败，请检查 assets/ace 目录');
             return;
         }
 
-        ace.config.set('basePath', 'theme/ace');
-        ace.config.set('modePath', 'theme/ace');
-        ace.config.set('themePath', 'theme/ace');
-        ace.config.set('workerPath', 'theme/ace');
+        ace.config.set('basePath', aceBase);
+        ace.config.set('modePath', aceBase);
+        ace.config.set('themePath', aceBase);
+        ace.config.set('workerPath', aceBase);
 
         editor = ace.edit('editor');
         editor.setTheme('ace/theme/monokai');
@@ -193,16 +107,17 @@
     }
 
     function bindEvents() {
-        document.getElementById('btn-refresh').addEventListener('click', function () {
-            loadList();
-        });
-
+        document.getElementById('btn-refresh').addEventListener('click', loadList);
         document.getElementById('btn-save').addEventListener('click', saveTemplate);
         document.getElementById('btn-create').addEventListener('click', openCreate);
-        searchEl.addEventListener('input', renderList);
+        searchEl.addEventListener('input', renderTable);
+
+        table.on('row(tpl-table)', function (obj) {
+            selectTemplate(obj.data.id);
+        });
     }
 
-    function request(path, options) {
+    function request(url, options) {
         options = options || {};
 
         var headers = options.headers || {};
@@ -212,7 +127,7 @@
             headers['Content-Type'] = 'application/json';
         }
 
-        return fetch(api + path, {
+        return fetch(url, {
             method: options.method || 'GET',
             headers: headers,
             body: options.body,
@@ -227,13 +142,13 @@
     function loadList() {
         setStatus('正在加载模板列表...');
 
-        request('/read').then(function (result) {
+        request(readUrl).then(function (result) {
             if (result.code !== 0) {
                 throw new Error(result.msg || '加载模板列表失败');
             }
 
             state.items = (result.data && result.data.items) || [];
-            renderList();
+            renderTable();
             setStatus('模板列表已加载，共 ' + state.items.length + ' 条');
         }).catch(function (error) {
             setStatus(error.message);
@@ -241,47 +156,83 @@
         });
     }
 
-    function renderList() {
+    function filteredItems() {
         var keyword = (searchEl.value || '').trim().toLowerCase();
-        var items = state.items.filter(function (item) {
-            if (!keyword) {
-                return true;
-            }
 
+        if (!keyword) {
+            return state.items;
+        }
+
+        return state.items.filter(function (item) {
             return String(item.id).indexOf(keyword) !== -1
                 || String(item.excerpt || '').toLowerCase().indexOf(keyword) !== -1;
         });
+    }
 
-        listEl.innerHTML = '';
+    function renderTable() {
+        var items = filteredItems();
+
         countEl.textContent = String(state.items.length);
-        emptyEl.style.display = items.length === 0 ? 'block' : 'none';
-        emptyEl.textContent = state.items.length === 0 ? '暂无模板记录' : '没有匹配的模板';
 
-        items.forEach(function (item) {
-            var li = document.createElement('li');
-            li.className = 'codeditor-list-item' + (item.id === state.currentId ? ' is-active' : '');
-            li.setAttribute('data-id', String(item.id));
-
-            var idEl = document.createElement('span');
-            idEl.className = 'codeditor-list-id';
-            idEl.textContent = '#' + item.id;
-
-            var textEl = document.createElement('span');
-            textEl.className = 'codeditor-list-text';
-            textEl.textContent = item.excerpt || '（空白模板）';
-
-            var metaEl = document.createElement('span');
-            metaEl.className = 'codeditor-list-meta';
-            metaEl.textContent = item.length + ' 字符';
-
-            li.appendChild(idEl);
-            li.appendChild(textEl);
-            li.appendChild(metaEl);
-            li.addEventListener('click', function () {
-                selectTemplate(item.id);
+        if (!state.table) {
+            state.table = table.render({
+                elem: '#tpl-table',
+                data: items,
+                skin: 'line',
+                size: 'sm',
+                page: { limit: 20, limits: [20, 50, 100] },
+                limit: 20,
+                text: {
+                    none: state.items.length === 0 ? '暂无模板记录' : '没有匹配的模板'
+                },
+                cols: [[
+                    {
+                        field: 'id',
+                        title: 'ID',
+                        width: 72,
+                        sort: true,
+                        templet: function (item) {
+                            return '<span class="codeditor-row-id" data-id="' + item.id + '">#' + item.id + '</span>';
+                        }
+                    },
+                    {
+                        field: 'excerpt',
+                        title: '摘要',
+                        minWidth: 220,
+                        templet: function (item) {
+                            return '<span class="codeditor-row-text">' + escapeHtml(item.excerpt || '（空白模板）') + '</span>';
+                        }
+                    },
+                    {
+                        field: 'length',
+                        title: '字符',
+                        width: 80,
+                        sort: true,
+                        align: 'right'
+                    }
+                ]],
+                done: highlightRow
             });
 
-            listEl.appendChild(li);
+            return;
+        }
+
+        state.table.reload({
+            data: items,
+            page: { curr: 1 },
+            text: {
+                none: state.items.length === 0 ? '暂无模板记录' : '没有匹配的模板'
+            },
+            done: highlightRow
+        });
+    }
+
+    function highlightRow() {
+        var rows = document.querySelectorAll('.codeditor-table .layui-table-body tr');
+
+        Array.prototype.forEach.call(rows, function (row) {
+            var marker = row.querySelector('.codeditor-row-id[data-id="' + state.currentId + '"]');
+            row.classList.toggle('is-active', Boolean(marker));
         });
     }
 
@@ -296,7 +247,7 @@
 
         setStatus('正在读取模板 #' + id + '...');
 
-        request('/read?id=' + encodeURIComponent(id)).then(function (result) {
+        request(readUrl + '?id=' + encodeURIComponent(id)).then(function (result) {
             if (result.code !== 0) {
                 throw new Error(result.msg || '读取模板失败');
             }
@@ -305,7 +256,7 @@
             state.currentId = data.id;
             currentTitle.textContent = '模板 #' + data.id;
             setEditorValue(data.content || '');
-            renderList();
+            highlightRow();
             setStatus('模板 #' + data.id + ' 已加载');
 
             if (editor) {
@@ -330,7 +281,7 @@
         state.saving = true;
         setStatus('正在保存模板 #' + state.currentId + '...');
 
-        request('/update', {
+        request(updateUrl, {
             method: 'POST',
             body: JSON.stringify({
                 id: state.currentId,
@@ -379,7 +330,7 @@
                 state.creating = true;
                 setStatus('正在新增模板...');
 
-                request('/create', {
+                request(createUrl, {
                     method: 'POST',
                     body: JSON.stringify({ content: content, file: file })
                 }).then(function (result) {
@@ -447,7 +398,12 @@
             layer.msg(message, { icon: 2, time: 3000 });
         }
     }
+
+    function escapeHtml(text) {
+        return String(text)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;');
+    }
 })();
-</script>
-</body>
-</html>

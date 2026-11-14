@@ -1,31 +1,19 @@
 ## ThinkPHP-PanGu - 盘古ThinkPHP开源索引!
 面向 ThinkPHP 的开源工程索引：组件、框架、服务与发布工具，按能力组织，持续整理。
-仓库地址：**<https://github.com/indiboy-create/ThinkPHP-PanGu/>**
-在线站点：**<https://indiboy-create.github.io/ThinkPHP-PanGu/>**
+- 仓库地址：**<https://github.com/indiboy-create/ThinkPHP-PanGu/>**
+- 在线站点：**<https://indiboy-create.github.io/ThinkPHP-PanGu/>**
 
 # youvision/think-store-codeditor
 
-ThinkPHP 8 模板代码编辑器实例包：内置基于 [Ace Editor](https://github.com/ajaxorg/ace) 与 layui 的 HTML + PHP 混合代码编辑页面，通过 [`youvision/think-static`](https://github.com/indiboy-create/think-static) 部署到主项目的 `public/store/store-codeditor`，并提供模板读取、更新、新增三个路由接口。
+ThinkPHP 8 模板代码编辑器扩展：通过包内 `View` 渲染 layui 管理页面，在 [Ace Editor](https://github.com/ajaxorg/ace) 中编辑 HTML + PHP 混合模板；提供页面、读取、更新、新增与静态资源路由，静态资源无需发布到宿主 `public`。
 
-编辑器默认读取 `template` 数据表的 `id` 与 `newstext` 字段，数据表、字段、路由前缀与可编辑目录均可写入 `config/codeditor.php` 自定义。
+编辑器默认读取 `template` 数据表的 `id` 与 `newstext` 字段，数据表、字段、路由前缀与可编辑目录均可写入 `config/store_codeditor.php` 自定义。
 
 ## 环境要求
 
 - PHP >= 8.0
-- Composer >= 2.2
 - ThinkPHP 8 主项目
-
-`youvision/think-static` 是 Composer 插件。Composer 2.2 及以上版本默认拦截插件安装，主项目需要允许该插件：
-
-```json
-{
-    "config": {
-        "allow-plugins": {
-            "youvision/think-static": true
-        }
-    }
-}
-```
+- `topthink/think-view`（随本包自动安装）
 
 ## 安装
 
@@ -33,73 +21,50 @@ ThinkPHP 8 模板代码编辑器实例包：内置基于 [Ace Editor](https://gi
 composer require youvision/think-store-codeditor
 ```
 
-在主项目 `composer.json` 中允许插件，并把静态资源目录指向本包：
-
-```json
-{
-    "config": {
-        "allow-plugins": {
-            "youvision/think-static": true
-        }
-    },
-    "extra": {
-        "think-static": {
-            "project_dir": "vendor/youvision/think-store-codeditor/project"
-        }
-    }
-}
-```
-
-配置完成后执行：
-
-```bash
-composer dump-autoload
-```
-
-`project_dir` 会替换主项目默认的 `project` 目录。ThinkPHP 8 项目通常在 `composer.json` 的 `post-autoload-dump` 中执行 `service:discover` 与 `vendor:publish`，安装后会自动完成服务注册与配置发布；若主项目未配置该脚本，请手动执行：
+ThinkPHP 8 项目通常在 `composer.json` 的 `post-autoload-dump` 中执行 `service:discover` 与 `vendor:publish`，安装后会自动完成服务注册与配置发布。若主项目未配置该脚本，请手动执行：
 
 ```bash
 php think service:discover
 php think vendor:publish
 ```
 
-发布后主项目会得到 `config/codeditor.php`，可直接修改；未发布的配置项使用包内默认值。
+发布后主项目会得到 `config/store_codeditor.php`，可直接修改；未发布的配置项使用包内默认值。路由由 `Youvision\ThinkStoreCodeditor\Service` 在 `boot()` 阶段加载，宿主项目不需要复制路由文件。
 
-## 数据表
+## 路由
 
-默认读取 `template` 表，最少需要 `id` 与 `newstext` 两个字段：
+| 方法 | 地址 | 说明 |
+| --- | --- | --- |
+| GET | `/store/think-store-codeditor/index` | 渲染模板代码编辑器页面 |
+| GET | `/store/think-store-codeditor/read` | 读取模板列表，或按 `id` 读取单条模板 |
+| POST | `/store/think-store-codeditor/update` | 按 `id` 更新模板内容 |
+| POST | `/store/think-store-codeditor/create` | 新增模板记录，可选创建模板文件 |
+| GET | `/store/assets/<path>` | 直接输出包内 `theme/assets`，含 layui、Ace 与页面资源 |
 
-```sql
-CREATE TABLE `template` (
-  `id` int unsigned NOT NULL AUTO_INCREMENT COMMENT '模板id',
-  `newstext` longtext NULL COMMENT '模板内容',
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='模板数据表';
-```
+路由前缀由 `config/store_codeditor.php` 的 `route.prefix` 控制，默认 `store`；设为空字符串时地址变为 `/think-store-codeditor/index`、`/think-store-codeditor/read` 等。页面、接口与资源规则分别由 `route.rules` 与 `route.assets` 配置，修改后模板内的地址会自动跟随，不需要手工同步页面文件。
 
-表名、字段名全部可配置，见下文 `database` 配置。
+## 页面与静态资源
 
-## 页面
-
-部署完成后访问：
+- 模板位于包内 `theme/view`，由包内 `View` 渲染器通过 think-view 的 `Think` 驱动渲染，不依赖主项目的 `view_path`，也不需要复制到主项目。
+- 静态资源由 `AssetController` 读取 `theme/assets` 后输出，路径经过 `realpath` 校验并拒绝 `..`，避免目录穿越。
+- 资源响应带 `Cache-Control: public, max-age=86400`，字体、CSS、JS、图片等类型会返回对应的 `Content-Type`。
 
 ```text
-/store/store-codeditor/index.html
+/store/think-store-codeditor/index
+/store/assets/layui/css/layui.css
+/store/assets/ace/ace.js
 ```
 
-页面功能：
+## 页面功能
 
-- 左侧模板列表：读取 `template` 表记录，显示 id、内容摘要与字符数，支持按 id 或摘要筛选
-- 主编辑区：Ace Editor 的 `ace/mode/php` 模式，支持 HTML + PHP 混合高亮、自动换行、行号、括号匹配
-- 保存模板：按 id 更新 `newstext`，支持 `Ctrl + S` 快捷键
+- 左侧模板列表：layui 数据表格，显示 ID、内容摘要与字符数，支持排序与按 ID 或摘要筛选
+- 主编辑区：Ace Editor 的 `ace/mode/php` 模式，支持 HTML + PHP 混合高亮、自动换行、行号与括号匹配
+- 保存模板：按 ID 更新 `newstext`，支持 `Ctrl + S` 快捷键
 - 新增模板：新增一条模板记录，可选填写受限制目录内的文件路径，同时生成模板文件
 - 未保存状态提示与切换确认
 
-页面通过 `<div class="codeditor-shell" data-api="/codeditor">` 指定接口前缀。修改 `route.prefix` 后请同步调整 `project/index.html` 的 `data-api` 属性。
-
 ## 接口
 
-三个接口由 `route/codeditor.php` 注册，默认前缀为 `codeditor`。所有接口返回统一 JSON 结构：
+页面与接口共用统一 JSON 结构：
 
 ```json
 {
@@ -114,7 +79,7 @@ CREATE TABLE `template` (
 ### 读取模板
 
 ```http
-GET /codeditor/read
+GET /store/think-store-codeditor/read
 ```
 
 不带参数时返回模板列表：
@@ -136,7 +101,7 @@ GET /codeditor/read
 带 `id` 参数时返回单条模板：
 
 ```http
-GET /codeditor/read?id=1
+GET /store/think-store-codeditor/read?id=1
 ```
 
 ```json
@@ -155,7 +120,7 @@ GET /codeditor/read?id=1
 ### 更新模板
 
 ```http
-POST /codeditor/update
+POST /store/think-store-codeditor/update
 Content-Type: application/json
 ```
 
@@ -183,7 +148,7 @@ Content-Type: application/json
 ### 新增模板
 
 ```http
-POST /codeditor/create
+POST /store/think-store-codeditor/create
 Content-Type: application/json
 ```
 
@@ -214,20 +179,36 @@ Content-Type: application/json
 
 `file` 为空时只新增数据库记录，不读写磁盘。文件写入失败时会自动回滚刚插入的数据库记录。
 
-## 配置 config/codeditor.php
+## 数据表
+
+默认读取 `template` 表，最少需要 `id` 与 `newstext` 两个字段：
+
+```sql
+CREATE TABLE `template` (
+  `id` int unsigned NOT NULL AUTO_INCREMENT COMMENT '模板id',
+  `newstext` longtext NULL COMMENT '模板内容',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='模板数据表';
+```
+
+表名、字段名全部可配置，见下文 `database` 配置。
+
+## 配置
 
 ### route 路由
 
 | 配置项 | 默认值 | 说明 |
 | --- | --- | --- |
-| `route.enabled` | `true` | 是否随服务自动注册内置路由；关闭后可在主项目 `route` 目录自行注册 |
-| `route.prefix` | `codeditor` | 路由前缀，留空表示不带前缀；最终地址为 `/{prefix}/{rule}` |
-| `route.middleware` | `[]` | 应用到全部路由上的中间件，可填写类名或别名；生产环境应配置登录鉴权中间件 |
-| `route.rules.read` | `read` | 读取接口规则，注册为 GET |
-| `route.rules.update` | `update` | 更新接口规则，注册为 POST |
-| `route.rules.create` | `create` | 新增接口规则，注册为 POST |
+| `route.enabled` | `true` | 是否随服务自动注册页面、接口与资源路由；关闭后可在主项目 `route` 目录自行注册 |
+| `route.prefix` | `store` | 路由前缀，留空表示不带前缀 |
+| `route.middleware` | `[]` | 应用到整组路由上的中间件，可填写类名或别名；生产环境应配置登录鉴权中间件 |
+| `route.rules.index` | `think-store-codeditor/index` | 编辑器页面规则，注册为 GET |
+| `route.rules.read` | `think-store-codeditor/read` | 读取接口规则，注册为 GET |
+| `route.rules.update` | `think-store-codeditor/update` | 更新接口规则，注册为 POST |
+| `route.rules.create` | `think-store-codeditor/create` | 新增接口规则，注册为 POST |
+| `route.assets` | `assets` | 静态资源规则前缀，最终地址为 `/{prefix}/{assets}/<path>` |
 
-三个路由规则不能为空且不能重复，否则路由文件不会注册。
+`route.rules` 与 `route.assets` 不能为空且不能重复，否则路由文件不会注册。
 
 ### database 数据库
 
@@ -236,11 +217,12 @@ Content-Type: application/json
 | `database.connection` | 空字符串 | 数据库连接名，留空使用主项目默认连接 |
 | `database.table` | `template` | 模板数据表名，不含表前缀，框架自动拼接 |
 | `database.id_field` | `id` | 模板主键字段名 |
+| `database.path_field` | `path` | 模板主输出路径字段名 |
 | `database.content_field` | `newstext` | 模板内容字段名 |
 | `database.list_limit` | `200` | 模板列表接口最多返回的记录数，避免大表拖慢页面 |
 | `database.excerpt_length` | `60` | 列表摘要最大字符数，`0` 表示不截断 |
 
-`table`、`id_field`、`content_field` 只允许英文、数字与下划线，避免配置拼接注入。
+`table`、`id_field`、`path_field`、`content_field` 只允许英文、数字与下划线，避免配置拼接注入。
 
 ### file 可编辑目录
 
@@ -266,7 +248,33 @@ Content-Type: application/json
 
 ### Service 配置合并
 
-包启动时会自动合并包内默认配置与主项目 `config/codeditor.php`，主项目配置优先。`file.allow_dirs` 与 `file.ext` 为列表型配置，主项目配置会整体覆盖默认值，不会与默认值混合。修改配置后清除 `runtime` 缓存即可生效。
+包启动时会自动合并包内默认配置与主项目 `config/store_codeditor.php`，主项目配置优先。`file.allow_dirs` 与 `file.ext` 为列表型配置，主项目配置会整体覆盖默认值，不会与默认值混合。修改配置后清除 `runtime` 缓存即可生效。
+
+## PHP 调用
+
+服务注册后，可通过容器获取 `Templates` 与 `PathGuard`：
+
+```php
+use Youvision\ThinkStoreCodeditor\PathGuard;
+use Youvision\ThinkStoreCodeditor\Templates;
+
+/** @var Templates $templates */
+$templates = app(Templates::class);
+// 也可使用别名：app('codeditor.templates')
+
+/** @var PathGuard $guard */
+$guard = app(PathGuard::class);
+// 也可使用别名：app('codeditor.path_guard')
+
+$list = $templates->lists();
+```
+
+两个类都支持脱离容器使用：
+
+```php
+$templates = new Templates((array) config('store_codeditor'));
+$guard     = new PathGuard((array) config('store_codeditor.file'), app()->getRootPath());
+```
 
 ## 目录结构
 
@@ -274,73 +282,35 @@ Content-Type: application/json
 think-store-codeditor/
 ├─ composer.json
 ├─ config/
-│  └─ codeditor.php
+│  └─ store_codeditor.php        # 编辑器配置
 ├─ route/
-│  └─ codeditor.php
+│  └─ store_codeditor.php        # 页面、接口与资源路由
 ├─ src/
-│  ├─ PathGuard.php
-│  ├─ Service.php
-│  ├─ Template.php
-│  ├─ TemplateController.php
-│  └─ Templates.php
-├─ project/
-│  ├─ project.json
-│  ├─ index.html
-│  ├─ readme.md
-│  ├─ theme/
-│  │  ├─ ace/
-│  │  ├─ css/codeditor.css
-│  │  └─ layui/
-│  └─ view/
-│     └─ index.html
+│  ├─ Service.php                # ThinkPHP 服务注册
+│  ├─ CodeditorController.php     # 页面渲染与读取、更新、新增接口
+│  ├─ AssetController.php         # 包内静态资源输出
+│  ├─ View.php                   # 包内模板渲染器
+│  ├─ Templates.php              # 模板数据仓储
+│  ├─ Template.php               # 模板数据模型
+│  └─ PathGuard.php              # 模板文件路径守卫
+├─ theme/
+│  ├─ view/
+│  │  └─ index.html              # 编辑器页面模板
+│  └─ assets/
+│     ├─ css/index.css           # 页面自定义样式
+│     ├─ js/codeditor.js         # 页面脚本
+│     ├─ ace/                    # Ace Editor 本地资源
+│     └─ layui/                  # layui 本地资源
 ├─ tests/
-│  └─ verify.php
+│  └─ verify.php                 # 独立验证脚本
 ├─ LICENSE
 └─ README.md
 ```
 
-- `project` 是静态资源部署源目录，`project.json` 自身不会被部署
-- `theme/ace`、`theme/layui` 为完整本地第三方库，保持原样
-- `src` 为接口实现，`route/codeditor.php` 为路由定义
-- `config/codeditor.php` 为默认配置
-
-## 部署配置 project/project.json
-
-```json
-{
-  "path": "store-codeditor",
-  "map": {
-    "theme": "theme",
-    "view": "view",
-    "index.html": "index.html",
-    "readme.md": "readme.md"
-  },
-  "exclude": ["**/*.map"]
-}
-```
-
-| 字段 | 必填 | 类型 | 说明 |
-| --- | --- | --- | --- |
-| `path` | 是 | string | 整个 `project` 部署到 `public/store` 下的目录名称 |
-| `map` | 否 | object | 部署映射，键为 `project` 下的相对路径，值为目标相对路径 |
-| `exclude` | 否 | array | 排除规则，相对 `project` 根目录，支持通配符 |
-
-部署结果：
-
-```text
-project/theme       → public/store/store-codeditor/theme
-project/view        → public/store/store-codeditor/view
-project/index.html  → public/store/store-codeditor/index.html
-project/readme.md   → public/store/store-codeditor/readme.md
-```
-
-部署后访问 `/store/store-codeditor/index.html`。使用 PHP 内置服务器预览：
-
-```bash
-php -S 127.0.0.1:8003 -t public
-```
-
-修改 `project` 下静态资源后执行 `composer dump-autoload` 重新发布。
+- `theme/view` 与 `theme/assets` 均由包内路由读取，不发布到宿主 `public`
+- `theme/assets/ace`、`theme/assets/layui` 为完整本地第三方库，保持原样
+- `src` 为接口与渲染实现，`route/store_codeditor.php` 为路由定义
+- `config/store_codeditor.php` 为默认配置
 
 ## 安全建议
 
@@ -365,9 +335,10 @@ php tests/verify.php
 验证脚本会检查：
 
 - `composer.json` 的包名、依赖、PSR-4 自动加载、服务注册与配置声明
-- `config/codeditor.php` 的默认配置项
-- `project/project.json` 的部署路径、映射与排除规则
-- 路由文件、服务文件与前端页面的关键实现
+- `config/store_codeditor.php` 的默认配置项
+- 路由文件、服务文件、控制器、渲染器与前端资源的关键实现
+- `theme/view` 模板变量、layui 数据表格与 assets 路由引用
+- `AssetController` 的资源解析、MIME 类型与目录穿越防护
 - `PathGuard` 的目录白名单、目录穿越拦截、扩展名限制、覆盖开关与文件写入
 - 全部 PHP 文件的语法
 

@@ -11,13 +11,26 @@ use think\Request;
 use think\response\Json;
 use Throwable;
 
-class TemplateController
+class CodeditorController
 {
     public function __construct(
         protected Templates $templates,
         protected PathGuard $paths,
+        protected View $view,
         protected App $app
     ) {
+    }
+
+    /**
+     * 渲染模板代码编辑器页面。
+     */
+    public function index(): string
+    {
+        return $this->view->render('index', [
+            'api'       => $this->apiPrefix(),
+            'endpoints' => $this->endpoints(),
+            'version'   => $this->version(),
+        ]);
     }
 
     /**
@@ -76,8 +89,8 @@ class TemplateController
             $file = trim((string) ($file ?? ''));
 
             if ($file !== '') {
-                if (!(bool) $this->app->config->get('codeditor.file.enabled', true)) {
-                    throw new InvalidArgumentException('未开启模板文件创建（codeditor.file.enabled）');
+                if (!(bool) $this->app->config->get('store_codeditor.file.enabled', true)) {
+                    throw new InvalidArgumentException('未开启模板文件创建（store_codeditor.file.enabled）');
                 }
 
                 $target = $this->paths->resolveForWrite($file);
@@ -100,6 +113,62 @@ class TemplateController
                 'file' => $target === null ? null : $this->paths->relative($target),
             ]);
         });
+    }
+
+    /**
+     * 路由前缀，留空时不添加前导斜杠。
+     */
+    protected function apiPrefix(): string
+    {
+        $prefix = trim((string) config('store_codeditor.route.prefix', 'store'), '/');
+
+        return $prefix === '' ? '' : '/' . $prefix;
+    }
+
+    /**
+     * 页面使用的接口地址，跟随 route.prefix 与 route.rules 自动变化。
+     *
+     * @return array{read: string, update: string, create: string}
+     */
+    protected function endpoints(): array
+    {
+        return [
+            'read'   => $this->ruleUrl('read', 'think-store-codeditor/read'),
+            'update' => $this->ruleUrl('update', 'think-store-codeditor/update'),
+            'create' => $this->ruleUrl('create', 'think-store-codeditor/create'),
+        ];
+    }
+
+    protected function ruleUrl(string $rule, string $default): string
+    {
+        $path = trim((string) config('store_codeditor.route.rules.' . $rule, $default), '/');
+
+        return $this->apiPrefix() . '/' . $path;
+    }
+
+    protected function version(): string
+    {
+        if (class_exists(\Composer\InstalledVersions::class)) {
+            try {
+                $version = \Composer\InstalledVersions::getPrettyVersion('youvision/think-store-codeditor');
+
+                if (is_string($version) && $version !== '') {
+                    return $version;
+                }
+            } catch (Throwable) {
+            }
+        }
+
+        $file = dirname(__DIR__) . '/composer.json';
+
+        if (!is_file($file)) {
+            return 'dev';
+        }
+
+        $json    = json_decode((string) file_get_contents($file), true);
+        $version = is_array($json) ? (string) ($json['version'] ?? '') : '';
+
+        return $version !== '' ? $version : 'dev';
     }
 
     protected function handle(callable $callback): Json

@@ -13,25 +13,27 @@ class Service extends ThinkService
         $this->mergeConfig();
 
         $this->app->bind('codeditor.templates', function () {
-            return new Templates((array) $this->app->config->get('codeditor', []));
+            return new Templates((array) $this->app->config->get('store_codeditor', []));
         });
 
         $this->app->bind(Templates::class, 'codeditor.templates');
 
         $this->app->bind('codeditor.path_guard', function () {
             return new PathGuard(
-                (array) $this->app->config->get('codeditor.file', []),
+                (array) $this->app->config->get('store_codeditor.file', []),
                 (string) $this->app->getRootPath()
             );
         });
 
         $this->app->bind(PathGuard::class, 'codeditor.path_guard');
+
+        $this->app->instance(View::class, new View($this->app));
     }
 
     public function boot(): void
     {
-        if ((bool) $this->app->config->get('codeditor.route.enabled', true)) {
-            $this->loadRoutesFrom(dirname(__DIR__) . '/route/codeditor.php');
+        if ((bool) $this->app->config->get('store_codeditor.route.enabled', true)) {
+            $this->loadRoutesFrom(dirname(__DIR__) . '/route/store_codeditor.php');
         }
     }
 
@@ -42,8 +44,8 @@ class Service extends ThinkService
      */
     protected function mergeConfig(): void
     {
-        $default = require dirname(__DIR__) . '/config/codeditor.php';
-        $current = (array) $this->app->config->get('codeditor', []);
+        $default = require dirname(__DIR__) . '/config/store_codeditor.php';
+        $current = (array) $this->app->config->get('store_codeditor', []);
         $merged  = array_replace_recursive($default, $current);
 
         foreach ([['file', 'allow_dirs'], ['file', 'ext']] as [$section, $key]) {
@@ -52,6 +54,6 @@ class Service extends ThinkService
             }
         }
 
-        $this->app->config->set($merged, 'codeditor');
+        $this->app->config->set($merged, 'store_codeditor');
     }
 }

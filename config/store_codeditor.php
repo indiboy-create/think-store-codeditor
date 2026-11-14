@@ -3,34 +3,39 @@
 return [
     /*
     |--------------------------------------------------------------------------
-    | 自动注册路由
+    | 内置路由
     |--------------------------------------------------------------------------
-    | 控制内置的模板读取、更新、新增接口是否随服务自动注册。
-    | 关闭后可在主项目 route 目录中自行定义，控制器为
-    | Youvision\ThinkStoreCodeditor\TemplateController。
+    | 控制页面、接口与静态资源路由是否随服务自动注册。
+    | 最终地址为 /{prefix}/{rule}。
     */
     'route' => [
-        // 是否启用内置路由；关闭后由主项目自行注册
+        // 是否启用内置路由；关闭后可在应用路由文件中自行定义
         'enabled' => true,
 
-        // 路由前缀，留空表示不带前缀；最终地址为 /{prefix}/{rule}
-        'prefix' => 'codeditor',
+        // 路由前缀，留空表示不添加前缀，例如 store、api/store
+        'prefix' => 'store',
 
-        // 应用到全部路由上的中间件，例如 [\app\middleware\Auth::class]
+        // 应用到整组路由上的中间件，例如 [\app\middleware\Auth::class]
         // 生产环境请务必配置登录鉴权中间件，避免模板被匿名修改
         'middleware' => [],
 
-        // 三个接口的路由规则，均相对于 prefix
+        // 页面、接口与资源路由规则，均相对于 prefix
         'rules' => [
+            // 编辑器页面，GET 请求
+            'index' => 'think-store-codeditor/index',
+
             // 读取接口，GET 请求；带 id 读取单条，不带 id 返回模板列表
-            'read' => 'read',
+            'read' => 'think-store-codeditor/read',
 
             // 更新接口，POST 请求；按 id 更新模板内容
-            'update' => 'update',
+            'update' => 'think-store-codeditor/update',
 
             // 新增接口，POST 请求；新增模板记录，可选同时创建模板文件
-            'create' => 'create',
+            'create' => 'think-store-codeditor/create',
         ],
+
+        // 包内静态资源规则前缀，最终地址为 /{prefix}/{assets}/<path>
+        'assets' => 'assets',
     ],
 
     /*
@@ -49,6 +54,9 @@ return [
 
         // 模板主键字段名
         'id_field' => 'id',
+
+        // 模板主输出路径
+        'path_field' => 'path',
 
         // 模板内容字段名，编辑器内容保存到该字段
         'content_field' => 'newstext',
