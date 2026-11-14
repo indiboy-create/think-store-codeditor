@@ -62,6 +62,7 @@ $requiredFiles = [
     'route/store_codeditor.php',
     'src/AssetController.php',
     'src/CodeditorController.php',
+    'src/middleware/Auth.php',
     'src/PathGuard.php',
     'src/Service.php',
     'src/Template.php',
@@ -92,7 +93,10 @@ $config     = is_file($configFile) ? require $configFile : [];
 
 $check(($config['route']['enabled'] ?? null) === true, '默认应启用内置路由');
 $check(($config['route']['prefix'] ?? '') === 'store', '默认路由前缀应为 store');
-$check(($config['route']['middleware'] ?? null) === [], '默认路由中间件应为空数组');
+$check(
+    ($config['route']['middleware'] ?? null) === [\Youvision\ThinkStoreCodeditor\middleware\Auth::class],
+    '默认路由中间件应包含包内 Auth'
+);
 $check(
     ($config['route']['rules'] ?? []) === [
         'index'  => 'think-store-codeditor/index',
@@ -104,6 +108,12 @@ $check(
 );
 $check(($config['route']['assets'] ?? '') === 'assets', '默认静态资源规则前缀应为 assets');
 
+$check(($config['auth']['enabled'] ?? null) === true, '默认应启用访问认证');
+$check(($config['auth']['session_key'] ?? null) === '', '默认不绑定 Session 键');
+$check(($config['auth']['username'] ?? '') === 'admin', '默认 Basic Auth 用户名应为 admin');
+$check(($config['auth']['password'] ?? null) === '', '默认访问密码应为空，安装后需配置');
+$check(($config['auth']['realm'] ?? '') === 'Think Store Codeditor', '默认 Basic Auth 域应为 Think Store Codeditor');
+
 $check(($config['database']['connection'] ?? null) === '', '默认应使用主项目默认数据库连接');
 $check(($config['database']['table'] ?? '') === 'template', '默认模板数据表应为 template');
 $check(($config['database']['id_field'] ?? '') === 'id', '默认模板主键字段应为 id');
@@ -114,7 +124,7 @@ $check(($config['database']['excerpt_length'] ?? 0) === 60, '默认摘要长度�
 $check(($config['file']['enabled'] ?? null) === true, '默认应允许新增模板时创建文件');
 $check(($config['file']['root'] ?? '') === 'template', '默认可编辑根目录应为 template');
 $check(($config['file']['allow_dirs'] ?? []) === ['default'], '默认可编辑目录应为 default');
-$check(($config['file']['ext'] ?? []) === ['html', 'htm', 'php', 'tpl'], '默认扩展名白名单应包含 html、htm、php、tpl');
+$check(($config['file']['ext'] ?? []) === ['html'], '默认扩展名白名单应为 html');
 $check(($config['file']['overwrite'] ?? null) === false, '默认不覆盖已存在的模板文件');
 $check(($config['file']['create_dir'] ?? null) === true, '默认应自动创建模板目录');
 

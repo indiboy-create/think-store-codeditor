@@ -15,9 +15,11 @@ return [
         // 路由前缀，留空表示不添加前缀，例如 store、api/store
         'prefix' => 'store',
 
-        // 应用到整组路由上的中间件，例如 [\app\middleware\Auth::class]
-        // 生产环境请务必配置登录鉴权中间件，避免模板被匿名修改
-        'middleware' => [],
+        // 应用到整组路由上的中间件，默认启用包内 Auth
+        // 需要接入主项目鉴权时可替换为 [\app\middleware\Auth::class]
+        'middleware' => [
+            \Youvision\ThinkStoreCodeditor\middleware\Auth::class,
+        ],
 
         // 页面、接口与资源路由规则，均相对于 prefix
         'rules' => [
@@ -36,6 +38,30 @@ return [
 
         // 包内静态资源规则前缀，最终地址为 /{prefix}/{assets}/<path>
         'assets' => 'assets',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | 访问认证
+    |--------------------------------------------------------------------------
+    | 页面、接口与静态资源路由默认经过包内 Auth 中间件。
+    | 主项目已有登录系统时配置 session_key；否则使用 HTTP Basic Auth。
+    */
+    'auth' => [
+        // 是否启用访问认证；false 时 Auth 中间件直接放行
+        'enabled' => true,
+
+        // 主项目登录态 Session 键，值为真时放行，例如 admin_id
+        'session_key' => '',
+
+        // HTTP Basic Auth 用户名
+        'username' => 'admin',
+
+        // HTTP Basic Auth 密码；留空时未命中 Session 的请求返回 503
+        'password' => '',
+
+        // Basic Auth 提示域
+        'realm' => 'Think Store Codeditor',
     ],
 
     /*
@@ -90,7 +116,7 @@ return [
         'allow_dirs' => ['default'],
 
         // 允许创建的文件扩展名，统一转为小写比较
-        'ext' => ['html', 'htm', 'php', 'tpl'],
+        'ext' => ['html'],
 
         // 目标文件已存在时是否覆盖；false 时新增接口会直接报错
         'overwrite' => false,

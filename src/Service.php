@@ -40,7 +40,7 @@ class Service extends ThinkService
     /**
      * 合并包内默认配置与主项目配置，主项目配置优先。
      *
-     * 列表型配置（可编辑目录、扩展名）整体覆盖，避免默认值与自定义值混用。
+     * 列表型配置（可编辑目录、扩展名、路由中间件）整体覆盖，避免默认值与自定义值混用。
      */
     protected function mergeConfig(): void
     {
@@ -48,7 +48,7 @@ class Service extends ThinkService
         $current = (array) $this->app->config->get('store_codeditor', []);
         $merged  = array_replace_recursive($default, $current);
 
-        foreach ([['file', 'allow_dirs'], ['file', 'ext']] as [$section, $key]) {
+        foreach ([['file', 'allow_dirs'], ['file', 'ext'], ['route', 'middleware']] as [$section, $key]) {
             if (array_key_exists($key, (array) ($current[$section] ?? []))) {
                 $merged[$section][$key] = array_values((array) $current[$section][$key]);
             }

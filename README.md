@@ -28,7 +28,7 @@ php think service:discover
 php think vendor:publish
 ```
 
-发布后主项目会得到 `config/store_codeditor.php`，可直接修改；未发布的配置项使用包内默认值。路由由 `Youvision\ThinkStoreCodeditor\Service` 在 `boot()` 阶段加载，宿主项目不需要复制路由文件。
+发布后主项目会得到 `config/store_codeditor.php`，可直接修改；未发布的配置项使用包内默认值。默认启用访问认证，安装后请在 `auth` 中配置 `session_key` 或 `password`，否则未认证请求会返回 503。路由由 `Youvision\ThinkStoreCodeditor\Service` 在 `boot()` 阶段加载，宿主项目不需要复制路由文件。
 
 ## 路由
 
@@ -201,7 +201,7 @@ CREATE TABLE `template` (
 | --- | --- | --- |
 | `route.enabled` | `true` | 是否随服务自动注册页面、接口与资源路由；关闭后可在主项目 `route` 目录自行注册 |
 | `route.prefix` | `store` | 路由前缀，留空表示不带前缀 |
-| `route.middleware` | `[]` | 应用到整组路由上的中间件，可填写类名或别名；生产环境应配置登录鉴权中间件 |
+| `route.middleware` | `[Auth::class]` | 应用到整组路由上的中间件；默认启用包内 `Auth`，可替换为主项目鉴权中间件 |
 | `route.rules.index` | `think-store-codeditor/index` | 编辑器页面规则，注册为 GET |
 | `route.rules.read` | `think-store-codeditor/read` | 读取接口规则，注册为 GET |
 | `route.rules.update` | `think-store-codeditor/update` | 更新接口规则，注册为 POST |
@@ -209,6 +209,27 @@ CREATE TABLE `template` (
 | `route.assets` | `assets` | 静态资源规则前缀，最终地址为 `/{prefix}/{assets}/<path>` |
 
 `route.rules` 与 `route.assets` 不能为空且不能重复，否则路由文件不会注册。
+
+### auth 访问认证
+
+页面、接口与静态资源路由默认经过包内 `Auth` 中间件。主项目已有登录系统时配置 `session_key`；否则使用 HTTP Basic Auth。
+
+| 配置项 | 默认值 | 说明 |
+| --- | --- | --- |
+| `auth.enabled` | `true` | 是否启用认证；`false` 时 `Auth` 中间件直接放行 |
+| `auth.session_key` | 空字符串 | 主项目登录态 Session 键，值为真时放行，例如 `admin_id` |
+| `auth.username` | `admin` | HTTP Basic Auth 用户名 |
+| `auth.password` | 空字符串 | HTTP Basic Auth 密码；留空时未命中 Session 的请求返回 503 |
+| `auth.realm` | `Think Store Codeditor` | Basic Auth 提示域 |
+
+认证规则：
+
+- 配置 `session_key` 且 Session 值为真时直接放行
+- 未命中 Session 时使用 HTTP Basic Auth 校验 `username` 与 `password`
+- `password` 为空时拒绝访问并提示配置，避免默认弱口令
+- 页面请求返回纯文本，接口请求（`Accept: application/json`）返回 JSON
+- 401 响应带 `WWW-Authenticate`，浏览器会弹出登录框
+- 需要接入主项目自定义鉴权时，可将 `route.middleware` 替换为主项目中间件，或设置 `auth.enabled=false` 后自行保护路由
 
 ### database 数据库
 
@@ -233,7 +254,7 @@ CREATE TABLE `template` (
 | `file.enabled` | `true` | 是否允许新增模板时创建文件；关闭后新增接口只写入数据库 |
 | `file.root` | `template` | 模板根目录，相对主项目根目录或绝对路径；主项目使用 `view` 目录时可改为 `view` |
 | `file.allow_dirs` | `["default"]` | 可编辑目录白名单，相对 `file.root`；`file` 必须落在其中之一；空数组表示不允许创建任何文件 |
-| `file.ext` | `["html","htm","php","tpl"]` | 允许创建的文件扩展名，统一转小写比较 |
+| `file.ext` | `["html"]` | 允许创建的文件扩展名，统一转小写比较 |
 | `file.overwrite` | `false` | 目标文件已存在时是否覆盖；`false` 时新增接口直接报错 |
 | `file.create_dir` | `true` | 目标文件的父目录不存在时是否自动创建 |
 
@@ -248,7 +269,7 @@ CREATE TABLE `template` (
 
 ### Service 配置合并
 
-包启动时会自动合并包内默认配置与主项目 `config/store_codeditor.php`，主项目配置优先。`file.allow_dirs` 与 `file.ext` 为列表型配置，主项目配置会整体覆盖默认值，不会与默认值混合。修改配置后清除 `runtime` 缓存即可生效。
+包启动时会自动合并包内默认配置与主项目 `config/store_codeditor.php`，主项目配置优先。`file.allow_dirs`、`file.ext` 与 `route.middleware` 为列表型配置，主项目配置会整体覆盖默认值，不会与默认值混合。修改配置后清除 `runtime` 缓存即可生效。
 
 ## PHP 调用
 
@@ -292,7 +313,9 @@ think-store-codeditor/
 │  ├─ View.php                   # 包内模板渲染器
 │  ├─ Templates.php              # 模板数据仓储
 │  ├─ Template.php               # 模板数据模型
-│  └─ PathGuard.php              # 模板文件路径守卫
+│  ├─ PathGuard.php              # 模板文件路径守卫
+│  └─ middleware/
+│     └─ Auth.php                # 访问认证中间件
 ├─ theme/
 │  ├─ view/
 │  │  └─ index.html              # 编辑器页面模板
@@ -314,7 +337,7 @@ think-store-codeditor/
 
 ## 安全建议
 
-- 为 `route.middleware` 配置登录鉴权中间件，避免模板被匿名读取或修改
+- 保持 `auth.enabled=true`，并配置 `auth.password` 或 `auth.session_key`，避免模板被匿名读取或修改
 - 生产环境保持 `file.overwrite=false`，并只开放必要的可编辑目录
 - 明确 `file.ext` 白名单，不要加入 `js`、`exe` 等可执行或脚本类型
 - `file.root` 与 `file.allow_dirs` 建议指向模板目录，不要指向项目根目录或 `public`
