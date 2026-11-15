@@ -2,7 +2,6 @@
     "name": "youvision/think-store-codeditor",
     "description": "ThinkPHP 8 模板代码编辑器扩展：基于 Ace 与 layui 编辑 HTML + PHP 混合模板，提供页面、读取、更新、新增与静态资源路由。",
     "type": "library",
-    "version": "1.0.0",
     "license": "MIT",
     "keywords": [
         "thinkphp",
