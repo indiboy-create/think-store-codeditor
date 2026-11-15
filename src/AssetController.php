@@ -34,8 +34,12 @@ class AssetController
 
     public function file(string $path): Response
     {
-        $file = self::resolve($path);
+        return $this->respond(self::resolve($path));
+    }
 
+
+    protected function respond(?string $file): Response
+    {
         if ($file === null) {
             return response('Not Found', 404);
         }
@@ -51,7 +55,15 @@ class AssetController
      */
     public static function resolve(string $path): ?string
     {
-        $base = realpath(dirname(__DIR__) . '/theme/assets');
+        return self::resolveIn(dirname(__DIR__) . '/theme/assets', $path);
+    }
+
+    /**
+     * 解析指定根目录内的相对路径，越界或文件不存在时返回 null。
+     */
+    public static function resolveIn(string $base, string $path): ?string
+    {
+        $base = realpath($base);
 
         if ($base === false) {
             return null;

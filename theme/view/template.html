@@ -1,5 +1,38 @@
-{include file="layout/head" /}
-{include file="layout/header" /}
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{$title} · Think Store Codeditor</title>
+<meta name="description" content="{$description}">
+<meta name="theme-color" content="#0b2424">
+<link rel="stylesheet" href="{$assets}/layui/css/layui.css">
+<link rel="stylesheet" href="{$assets}/css/index.css">
+</head>
+<body class="codeditor-page codeditor-template">
+<div class="codeditor-shell">
+    <header class="codeditor-header">
+        <div class="codeditor-container codeditor-header__inner">
+            <a class="codeditor-brand" href="{$home}">
+                <span class="codeditor-brand__mark"><i class="layui-icon layui-icon-console"></i></span>
+                <span class="codeditor-brand__name">Codeditor<small>THINK STORE CODEDITOR</small></span>
+            </a>
+            <nav class="codeditor-nav" id="codeditor-nav">
+                <a href="{$home}">项目介绍</a>
+                <a class="is-active" href="{$template}">模板编辑</a>
+                <a href="{$category}">分类管理</a>
+            </nav>
+            <div class="codeditor-header__actions">
+                <a class="codeditor-github" href="https://github.com/indiboy-create/think-store-codeditor" target="_blank" rel="noopener">
+                    <i class="layui-icon layui-icon-log"></i><span>GitHub</span>
+                </a>
+                <span class="codeditor-version">{$version}</span>
+            </div>
+            <button type="button" class="codeditor-nav-toggle" id="codeditor-nav-toggle" aria-label="打开导航" aria-expanded="false" aria-controls="codeditor-nav">
+                <i class="layui-icon layui-icon-spread-left"></i>
+            </button>
+        </div>
+    </header>
 
 <section class="codeditor-page-head">
     <div class="codeditor-container codeditor-page-head__inner">
@@ -13,7 +46,7 @@
             <p class="codeditor-page-desc">左侧选择模板，右侧编辑 HTML + PHP 内容；保存时写入快照，历史面板可查看与还原。</p>
         </div>
         <div class="codeditor-page-head__actions">
-            <span class="codeditor-badge"><i class="layui-icon layui-icon-console"></i> ace/mode/php</span>
+            <span class="codeditor-badge codeditor-badge--soft"><i class="layui-icon layui-icon-console"></i> ace/mode/php</span>
             <a class="codeditor-btn codeditor-btn--outline codeditor-btn--sm" href="{$category}">
                 <i class="layui-icon layui-icon-list"></i> 分类管理
             </a>
@@ -25,7 +58,7 @@
     <aside class="codeditor-sidebar">
         <div class="codeditor-sidebar__head">
             <span>模板列表</span>
-            <span class="codeditor-badge" id="tpl-count">0</span>
+            <span class="codeditor-count" id="tpl-count">0</span>
         </div>
         <div class="codeditor-sidebar__search">
             <input type="text" id="tpl-search" class="layui-input" placeholder="按 ID、标题或分类筛选">
@@ -125,4 +158,32 @@ window.CODEDITOR_CONFIG = {
     historyRestore: '{$historyRestore}'
 };
 </script>
-{include file="layout/footer" /}
+</div>
+<script>
+(function () {
+    var toggle = document.getElementById('codeditor-nav-toggle');
+    var nav = document.getElementById('codeditor-nav');
+
+    if (!toggle || !nav) {
+        return;
+    }
+
+    toggle.addEventListener('click', function () {
+        var open = nav.classList.toggle('is-open');
+        toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+
+    nav.addEventListener('click', function (event) {
+        if (event.target.tagName === 'A') {
+            nav.classList.remove('is-open');
+            toggle.setAttribute('aria-expanded', 'false');
+        }
+    });
+})();
+</script>
+<script src="{$assets}/layui/layui.js"></script>
+<script src="{$assets}/ace/ace.js"></script>
+<script src="{$assets}/js/codeditor.js"></script>
+<script src="{$assets}/js/history.js"></script>
+</body>
+</html>

@@ -57,7 +57,7 @@ class CodeditorController
             'template'       => $this->codeditor->template(),
             'category'       => $this->codeditor->category(),
             'assets'         => $this->codeditor->assets(),
-            'templateApi'    => $this->codeditor->apiTemplate(),
+            'templateApi' => $this->codeditor->apiTemplate(),
             'historyApi'     => $this->codeditor->apiTemplate('history'),
             'historyDetail'  => $this->codeditor->apiTemplate('history/detail'),
             'historyRestore' => $this->codeditor->apiTemplate('history/restore'),
@@ -65,6 +65,25 @@ class CodeditorController
             'active'         => 'template',
             'title'          => '模板代码编辑器',
             'description'    => '在浏览器中编辑 ThinkPHP 模板，支持 HTML 与 PHP 混合高亮、保存、新增与历史还原。',
+        ]);
+    }
+
+    /**
+     * 渲染 iframe 版模板列表页，复用模板读取、新增与更新接口。
+     */
+    public function iframe(): string
+    {
+        return $this->view->render('iframe/template', [
+            'base'        => $this->codeditor->base(),
+            'home'        => $this->codeditor->index(),
+            'template'    => $this->codeditor->template(),
+            'category'    => $this->codeditor->category(),
+            'assets'      => $this->codeditor->assets(),
+            'templateApi' => $this->codeditor->apiTemplate(),
+            'categoryApi' => $this->codeditor->apiCategory(),
+            'version'     => $this->codeditor->version(),
+            'title'       => '模板列表',
+            'description' => 'iframe 版模板列表：查看、新增与编辑模板内容。',
         ]);
     }
 

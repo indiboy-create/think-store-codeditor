@@ -1,0 +1,193 @@
+html,
+body {
+    -webkit-text-size-adjust: 100%;
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    background-color: #f2f2f2;
+    color: #333;
+    font-family: 'Helvetica Neue', 'PingFang SC', 'Microsoft YaHei', Arial, sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+}
+
+a {
+    color: inherit;
+    text-decoration: none;
+}
+
+img {
+    max-width: 100%;
+}
+
+/* layuiAdmin header */
+.layadmin-header {
+    height: 50px;
+    margin-bottom: 0;
+    border: 0;
+    border-bottom: 1px solid #f6f6f6;
+    border-radius: 0;
+    background-color: #fff;
+    line-height: 50px;
+}
+
+.layadmin-header .layui-breadcrumb {
+    padding: 0 15px;
+}
+
+.layadmin-header .layui-breadcrumb a {
+    color: #999;
+}
+
+.layadmin-header .layui-breadcrumb a:hover {
+    color: #01aaed;
+}
+
+.layadmin-header .layui-breadcrumb cite {
+    color: #666;
+    font-style: normal;
+}
+
+/* fluid */
+.layui-fluid {
+    padding: 15px;
+}
+
+.layui-fluid .layui-row {
+    margin-bottom: -15px;
+}
+
+.layui-card {
+    border-radius: 2px;
+    box-shadow: 0 0 1px rgba(0, 0, 0, 0.08);
+}
+
+.layui-card-header {
+    height: 42px;
+    color: #333;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 42px;
+}
+
+.layui-card-header .layui-badge {
+    margin-left: 6px;
+    vertical-align: 2px;
+}
+
+/* toolbar */
+.iframe-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.iframe-toolbar .layui-inline {
+    margin-right: 0;
+}
+
+.iframe-toolbar .layui-input {
+    width: 220px;
+    height: 30px;
+    padding: 0 10px;
+    border-color: #e6e6e6;
+    border-radius: 2px;
+    font-size: 13px;
+    line-height: 30px;
+}
+
+.iframe-toolbar .layui-input:focus {
+    border-color: #16baaa;
+}
+
+.iframe-toolbar .iframe-select {
+    width: 160px;
+    height: 30px;
+    padding: 0 8px;
+    border: 1px solid #e6e6e6;
+    border-radius: 2px;
+    background: #fff;
+    color: #333;
+    font-family: inherit;
+    font-size: 13px;
+    outline: none;
+}
+
+.iframe-toolbar .iframe-select:focus {
+    border-color: #16baaa;
+}
+
+.iframe-toolbar .layui-btn {
+    margin: 0;
+}
+
+/* table tweaks */
+.layui-card-body .layui-table-view {
+    margin: 0;
+}
+
+.layui-card-body .layui-table-header th {
+    background-color: #f7f7f7;
+    color: #666;
+    font-weight: 600;
+}
+
+/* forms */
+.iframe-form {
+    padding: 16px 16px 0 0;
+}
+
+.iframe-form .layui-form-label {
+    width: 92px;
+    color: #666;
+}
+
+.iframe-form .layui-input-block {
+    margin-left: 122px;
+}
+
+.iframe-form .iframe-content {
+    height: 300px;
+    font-family: Consolas, Monaco, 'Cascadia Code', monospace;
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+.iframe-tip {
+    margin-top: 6px;
+    color: #999;
+    font-size: 12px;
+    line-height: 1.6;
+}
+
+/* preview */
+.iframe-preview {
+    height: 100%;
+    margin: 0;
+    padding: 16px 18px;
+    overflow: auto;
+    background: #2f363d;
+    color: #d1d5da;
+    font-family: Consolas, Monaco, 'Cascadia Code', monospace;
+    font-size: 12.5px;
+    line-height: 1.8;
+}
+
+@media (max-width: 640px) {
+    .layui-fluid {
+        padding: 10px;
+    }
+
+    .iframe-toolbar .layui-input {
+        width: 100%;
+    }
+
+    .iframe-toolbar .iframe-select {
+        width: 100%;
+    }
+}

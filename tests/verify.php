@@ -99,9 +99,12 @@ $requiredFiles = [
     'theme/view/index.html',
     'theme/view/template.html',
     'theme/view/category.html',
-    'theme/view/layout/head.html',
-    'theme/view/layout/header.html',
-    'theme/view/layout/footer.html',
+    'theme/view/iframe/category.html',
+    'theme/view/iframe/template.html',
+    'theme/assets/iframe/css/iframe.css',
+    'theme/assets/iframe/js/category.js',
+    'theme/assets/iframe/js/template.js',
+
     'theme/assets/css/index.css',
     'theme/assets/js/codeditor.js',
     'theme/assets/js/category.js',
@@ -122,6 +125,7 @@ foreach ($requiredFiles as $file) {
 
 $check(!is_dir($packageRoot . '/project'), 'project 目录应已迁移为 theme');
 $check(!is_file($packageRoot . '/src/TemplateController.php'), '控制器应重命名为 CodeditorController');
+$check(!is_dir($packageRoot . '/theme/view/layout'), '布局片段应内联到页面，不应保留 layout 目录');
 
 $configFile = $packageRoot . '/config/store_codeditor.php';
 $config     = is_file($configFile) ? require $configFile : [];
@@ -159,6 +163,9 @@ $check(str_contains($routeSource, "\$base = \$segment === '' ? '' : \$segment . 
 $check(str_contains($routeSource, "Route::get(\$base . 'index'"), '路由应注册项目介绍页面');
 $check(str_contains($routeSource, "Route::get(\$base . 'template'"), '路由应注册模板编辑器页面');
 $check(str_contains($routeSource, "Route::get(\$base . 'category'"), '路由应注册分类管理页面');
+$check(str_contains($routeSource, "Route::get(\$base . 'iframe/template'"), '路由应注册 iframe 模板列表页');
+$check(str_contains($routeSource, "Route::get(\$base . 'iframe/category'"), '路由应注册 iframe 分类管理页');
+
 $check(str_contains($routeSource, "Route::get(\$base . 'api/template/read'"), '路由应注册模板读取接口');
 $check(str_contains($routeSource, "Route::post(\$base . 'api/template/update'"), '路由应注册模板更新接口');
 $check(str_contains($routeSource, "Route::post(\$base . 'api/template/create'"), '路由应注册模板新增接口');
@@ -202,6 +209,7 @@ $controllerSource = (string) file_get_contents($packageRoot . '/src/CodeditorCon
 $check(str_contains($controllerSource, 'StoreCodeditor $codeditor'), '编辑器控制器应注入元数据类');
 $check(str_contains($controllerSource, 'function index'), '编辑器控制器应实现介绍页');
 $check(str_contains($controllerSource, 'function template'), '编辑器控制器应实现模板编辑器页');
+$check(str_contains($controllerSource, 'function iframe'), '编辑器控制器应实现 iframe 模板列表页');
 $check(str_contains($controllerSource, '$this->codeditor->template()'), '编辑器控制器应使用元数据模板编辑器地址');
 $check(str_contains($controllerSource, 'function read'), '编辑器控制器应实现读取接口');
 $check(str_contains($controllerSource, 'function update'), '编辑器控制器应实现更新接口');
@@ -215,11 +223,13 @@ $check(!str_contains($controllerSource, 'route.rules'), '编辑器控制器不�
 $categoryControllerSource = (string) file_get_contents($packageRoot . '/src/CategoryController.php');
 $check(str_contains($categoryControllerSource, 'StoreCodeditor $codeditor'), '分类控制器应注入元数据类');
 $check(str_contains($categoryControllerSource, 'function index'), '分类控制器应实现页面');
+$check(str_contains($categoryControllerSource, 'function iframe'), '分类控制器应实现 iframe 分类管理页');
 $check(str_contains($categoryControllerSource, 'function read'), '分类控制器应实现读取接口');
 $check(str_contains($categoryControllerSource, 'function create'), '分类控制器应实现新增接口');
 $check(str_contains($categoryControllerSource, 'function update'), '分类控制器应实现更新接口');
 $check(str_contains($categoryControllerSource, 'function delete'), '分类控制器应实现删除接口');
 $check(str_contains($categoryControllerSource, '$this->codeditor->apiCategory()'), '分类控制器应使用元数据分类接口');
+$check(str_contains($categoryControllerSource, '$this->codeditor->apiTemplate()'), '分类控制器应为页脚提供模板接口地址');
 $check(!str_contains($categoryControllerSource, 'route.rules'), '分类控制器不应再读取 route.rules');
 
 $categorySource = (string) file_get_contents($packageRoot . '/src/TemplateCategory.php');
@@ -244,31 +254,16 @@ $check(str_contains($viewSource, 'getRootPath'), '渲染器相对路径应从主
 $check(str_contains($viewSource, 'getRuntimePath'), '渲染器应使用主项目运行时目录');
 $check(str_contains($viewSource, 'ob_start'), '渲染器应捕获模板输出');
 
-$headSource = (string) file_get_contents($packageRoot . '/theme/view/layout/head.html');
-$check(str_contains($headSource, '{$title}'), '布局 head 应使用页面标题变量');
-$check(str_contains($headSource, '{$description}'), '布局 head 应使用页面描述变量');
-$check(str_contains($headSource, '{$assets}/layui/css/layui.css'), '布局 head 应引用 assets 路由的 layui 样式');
-$check(str_contains($headSource, '{$assets}/css/index.css'), '布局 head 应引用 assets 路由的页面样式');
-
-$headerSource = (string) file_get_contents($packageRoot . '/theme/view/layout/header.html');
-$check(str_contains($headerSource, '{$home}'), '布局 header 应使用介绍页地址');
-$check(str_contains($headerSource, '{$template}'), '布局 header 应使用模板编辑器地址');
-$check(str_contains($headerSource, '{$category}'), '布局 header 应使用分类页面地址');
-$check(str_contains($headerSource, '{$version}'), '布局 header 应输出版本号');
-$check(str_contains($headerSource, "active == 'intro'"), '布局 header 应按页面激活介绍导航');
-$check(str_contains($headerSource, "active == 'template'"), '布局 header 应按页面激活编辑器导航');
-$check(str_contains($headerSource, "active == 'category'"), '布局 header 应按页面激活分类导航');
-
-$footerSource = (string) file_get_contents($packageRoot . '/theme/view/layout/footer.html');
-$check(str_contains($footerSource, '{$assets}/layui/layui.js'), '布局 footer 应加载 layui');
-$check(str_contains($footerSource, "active == 'template'"), '布局 footer 应仅在编辑器页加载编辑器脚本');
-$check(str_contains($footerSource, '{$assets}/js/codeditor.js'), '布局 footer 应加载编辑器脚本');
-$check(str_contains($footerSource, '{$assets}/js/category.js'), '布局 footer 应加载分类脚本');
 
 $pageSource = (string) file_get_contents($packageRoot . '/theme/view/index.html');
-$check(str_contains($pageSource, '{include file="layout/head" /}'), '介绍页面应引入 head 布局');
-$check(str_contains($pageSource, '{include file="layout/header" /}'), '介绍页面应引入 header 布局');
-$check(str_contains($pageSource, '{include file="layout/footer" /}'), '介绍页面应引入 footer 布局');
+$check(str_contains($pageSource, '<!DOCTYPE html>'), '介绍页面应是完整 HTML 文档');
+$check(str_contains($pageSource, '{$title}'), '介绍页面应输出页面标题');
+$check(str_contains($pageSource, '{$description}'), '介绍页面应输出页面描述');
+$check(str_contains($pageSource, '{$assets}/layui/css/layui.css'), '介绍页面应引用 layui 样式');
+$check(str_contains($pageSource, '{$assets}/css/index.css'), '介绍页面应引用页面样式');
+$check(str_contains($pageSource, '{$assets}/layui/layui.js'), '介绍页面应加载 layui');
+$check(str_contains($pageSource, 'codeditor-header'), '介绍页面应包含站点头部');
+$check(str_contains($pageSource, 'codeditor-footer'), '介绍页面应包含站点页脚');
 $check(str_contains($pageSource, 'codeditor-hero'), '介绍页面应包含 hero 区域');
 $check(str_contains($pageSource, 'name="routes"'), '介绍页面应输出路由清单');
 $check(str_contains($pageSource, 'name="meta"'), '介绍页面应输出包信息');
@@ -279,9 +274,11 @@ $check(str_contains($pageSource, '{$categoryApi}/read'), '介绍页面应展示�
 $check(!str_contains($pageSource, 'id="tpl-table"'), '介绍页面不应包含编辑器表格');
 
 $templatePageSource = (string) file_get_contents($packageRoot . '/theme/view/template.html');
-$check(str_contains($templatePageSource, '{include file="layout/head" /}'), '编辑器页面应引入 head 布局');
-$check(str_contains($templatePageSource, '{include file="layout/header" /}'), '编辑器页面应引入 header 布局');
-$check(str_contains($templatePageSource, '{include file="layout/footer" /}'), '编辑器页面应引入 footer 布局');
+$check(str_contains($templatePageSource, '<!DOCTYPE html>'), '编辑器页面应是完整 HTML 文档');
+$check(str_contains($templatePageSource, 'codeditor-header'), '编辑器页面应包含站点头部');
+$check(!str_contains($templatePageSource, 'codeditor-footer'), '编辑器页面不应输出站点页脚');
+$check(str_contains($templatePageSource, '{$assets}/ace/ace.js'), '编辑器页面应加载 Ace');
+$check(str_contains($templatePageSource, '{$assets}/js/history.js'), '编辑器页面应加载历史脚本');
 $check(str_contains($templatePageSource, 'window.CODEDITOR_CONFIG'), '编辑器页面应注入接口配置');
 $check(str_contains($templatePageSource, '{$base}'), '编辑器页面应使用元数据 base 地址');
 $check(str_contains($templatePageSource, '{$assets}'), '编辑器页面应使用元数据资源地址');
@@ -292,9 +289,9 @@ $check(str_contains($templatePageSource, 'id="tpl-table"'), '编辑器页面应�
 $check(!str_contains($templatePageSource, 'cdn.'), '编辑器页面不应引用 CDN 资源');
 
 $categoryPageSource = (string) file_get_contents($packageRoot . '/theme/view/category.html');
-$check(str_contains($categoryPageSource, '{include file="layout/head" /}'), '分类页面应引入 head 布局');
-$check(str_contains($categoryPageSource, '{include file="layout/header" /}'), '分类页面应引入 header 布局');
-$check(str_contains($categoryPageSource, '{include file="layout/footer" /}'), '分类页面应引入 footer 布局');
+$check(str_contains($categoryPageSource, '<!DOCTYPE html>'), '分类页面应是完整 HTML 文档');
+$check(str_contains($categoryPageSource, 'codeditor-footer'), '分类页面应包含站点页脚');
+$check(str_contains($categoryPageSource, '{$assets}/js/category.js'), '分类页面应加载分类脚本');
 $check(str_contains($categoryPageSource, 'window.CODEDITOR_CATEGORY'), '分类页面应注入接口配置');
 $check(str_contains($categoryPageSource, '{$categoryApi}/read'), '分类页面应使用分类读取接口');
 $check(str_contains($categoryPageSource, '{$categoryApi}/create'), '分类页面应使用分类新增接口');
@@ -302,6 +299,36 @@ $check(str_contains($categoryPageSource, '{$categoryApi}/update'), '分类页面
 $check(str_contains($categoryPageSource, '{$categoryApi}/delete'), '分类页面应使用分类删除接口');
 $check(str_contains($categoryPageSource, 'id="category-table"'), '分类页面应包含 layui 数据表格容器');
 $check(str_contains($categoryPageSource, 'category-form-tpl'), '分类页面应包含新增/编辑表单');
+
+$iframeTemplatePageSource = (string) file_get_contents($packageRoot . '/theme/view/iframe/template.html');
+$check(str_contains($iframeTemplatePageSource, '<!DOCTYPE html>'), 'iframe 模板列表页应是完整 HTML 文档');
+$check(str_contains($iframeTemplatePageSource, 'iframe-template-table'), 'iframe 模板列表页应包含数据表格容器');
+$check(str_contains($iframeTemplatePageSource, 'window.CODEDITOR_IFRAME_TEMPLATE'), 'iframe 模板列表页应注入接口配置');
+$check(str_contains($iframeTemplatePageSource, '{$templateApi}/create'), 'iframe 模板列表页应使用模板新增接口');
+$check(str_contains($iframeTemplatePageSource, '{$categoryApi}/read'), 'iframe 模板列表页应使用分类读取接口');
+$check(str_contains($iframeTemplatePageSource, 'layadmin-header'), 'iframe 模板列表页应采用 layuiAdmin 原版头部');
+$check(str_contains($iframeTemplatePageSource, '{$assets}/iframe/css/iframe.css'), 'iframe 模板列表页应加载 iframe 目录样式');
+$check(str_contains($iframeTemplatePageSource, '{$assets}/iframe/js/template.js'), 'iframe 模板列表页应加载 iframe 目录脚本');
+
+$iframeCategoryPageSource = (string) file_get_contents($packageRoot . '/theme/view/iframe/category.html');
+$check(str_contains($iframeCategoryPageSource, '<!DOCTYPE html>'), 'iframe 分类页应是完整 HTML 文档');
+$check(str_contains($iframeCategoryPageSource, 'iframe-category-table'), 'iframe 分类页应包含树形表格容器');
+$check(str_contains($iframeCategoryPageSource, 'window.CODEDITOR_IFRAME_CATEGORY'), 'iframe 分类页应注入接口配置');
+$check(str_contains($iframeCategoryPageSource, '{$categoryApi}/delete'), 'iframe 分类页应使用分类删除接口');
+$check(str_contains($iframeCategoryPageSource, 'layadmin-header'), 'iframe 分类页应采用 layuiAdmin 原版头部');
+$check(str_contains($iframeCategoryPageSource, '{$assets}/iframe/css/iframe.css'), 'iframe 分类页应加载 iframe 目录样式');
+$check(str_contains($iframeCategoryPageSource, '{$assets}/iframe/js/category.js'), 'iframe 分类页应加载 iframe 目录脚本');
+
+$iframeTemplateScript = (string) file_get_contents($packageRoot . '/theme/assets/iframe/js/template.js');
+$check(str_contains($iframeTemplateScript, "layui.use(['table', 'layer', 'form']"), 'iframe 模板脚本应加载 layui table、layer 与 form');
+$check(str_contains($iframeTemplateScript, 'table.render'), 'iframe 模板脚本应渲染数据表格');
+$check(str_contains($iframeTemplateScript, "base + '/api/template/read'"), 'iframe 模板脚本应使用模板读取接口');
+$check(str_contains($iframeTemplateScript, "base + '/api/template/create'"), 'iframe 模板脚本应使用模板新增接口');
+
+$iframeCategoryScript = (string) file_get_contents($packageRoot . '/theme/assets/iframe/js/category.js');
+$check(str_contains($iframeCategoryScript, "layui.use(['treeTable', 'layer', 'form']"), 'iframe 分类脚本应加载 layui treeTable、layer 与 form');
+$check(str_contains($iframeCategoryScript, 'treeTable.render'), 'iframe 分类脚本应渲染树形表格');
+$check(str_contains($iframeCategoryScript, "base + '/api/category/delete'"), 'iframe 分类脚本应使用分类删除接口');
 
 $scriptSource = (string) file_get_contents($packageRoot . '/theme/assets/js/codeditor.js');
 $check(str_contains($scriptSource, "layui.use(['table', 'layer', 'form']"), '编辑器脚本应加载 layui table、layer 与 form');
@@ -394,7 +421,6 @@ $check(str_contains($templatePageSource, "history: '{\$historyApi}'"), '编辑�
 $check(str_contains($templatePageSource, "historyDetail: '{\$historyDetail}'"), '编辑器页面应注入历史详情地址');
 $check(str_contains($templatePageSource, "historyRestore: '{\$historyRestore}'"), '编辑器页面应注入历史还原地址');
 
-$check(str_contains($footerSource, '{$assets}/js/history.js'), '布局 footer 应加载历史脚本');
 
 $historyScriptSource = (string) file_get_contents($packageRoot . '/theme/assets/js/history.js');
 $check(str_contains($historyScriptSource, 'table.render'), '历史脚本应渲染 layui 数据表格');
@@ -416,6 +442,8 @@ $check(\Youvision\ThinkStoreCodeditor\AssetController::resolve('../composer.json
 $check(\Youvision\ThinkStoreCodeditor\AssetController::resolve('..') === null, '应拒绝上级目录');
 $check(\Youvision\ThinkStoreCodeditor\AssetController::resolve('') === null, '空路径应返回 null');
 $check(\Youvision\ThinkStoreCodeditor\AssetController::resolve('missing.css') === null, '不存在的资源应返回 null');
+$check(\Youvision\ThinkStoreCodeditor\AssetController::resolveIn($packageRoot . '/theme/assets/iframe/css', 'iframe.css') !== null, '应能解析 iframe 目录样式');
+$check(\Youvision\ThinkStoreCodeditor\AssetController::resolveIn($packageRoot . '/theme/assets/iframe/css', '../category.html') === null, 'iframe 资源应拒绝目录穿越');
 $check(\Youvision\ThinkStoreCodeditor\AssetController::mime('a.css') === 'text/css; charset=utf-8', 'CSS MIME 应正确');
 $check(\Youvision\ThinkStoreCodeditor\AssetController::mime('a.js') === 'application/javascript; charset=utf-8', 'JS MIME 应正确');
 $check(\Youvision\ThinkStoreCodeditor\AssetController::mime('a.woff2') === 'font/woff2', '字体 MIME 应正确');

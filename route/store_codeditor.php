@@ -31,6 +31,15 @@ $register = static function () use ($segment): void {
     Route::get($base . 'template', [CodeditorController::class, 'template'])->name('store_codeditor.template')->completeMatch();
     Route::get($base . 'category', [CategoryController::class, 'index'])->name('store_codeditor.category')->completeMatch();
 
+    // iframe 版简易管理页，复用现有 JSON 接口
+    Route::get($base . 'iframe/template', [CodeditorController::class, 'iframe'])
+        ->name('store_codeditor.iframe.template')
+        ->completeMatch();
+    Route::get($base . 'iframe/category', [CategoryController::class, 'iframe'])
+        ->name('store_codeditor.iframe.category')
+        ->completeMatch();
+
+
     // JSON 接口统一挂在 api 段下，与页面路由区分
     Route::get($base . 'api/template/read', [CodeditorController::class, 'read'])
         ->name('store_codeditor.template.read')

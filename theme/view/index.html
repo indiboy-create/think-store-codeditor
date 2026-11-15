@@ -1,73 +1,86 @@
-{include file="layout/head" /}
-{include file="layout/header" /}
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{$title} · Think Store Codeditor</title>
+<meta name="description" content="{$description}">
+<meta name="theme-color" content="#0b2424">
+<link rel="stylesheet" href="{$assets}/layui/css/layui.css">
+<link rel="stylesheet" href="{$assets}/css/index.css">
+</head>
+<body class="codeditor-page codeditor-intro">
+<div class="codeditor-shell">
+    <header class="codeditor-header">
+        <div class="codeditor-container codeditor-header__inner">
+            <a class="codeditor-brand" href="{$home}">
+                <span class="codeditor-brand__mark"><i class="layui-icon layui-icon-console"></i></span>
+                <span class="codeditor-brand__name">Codeditor<small>THINK STORE CODEDITOR</small></span>
+            </a>
+            <nav class="codeditor-nav" id="codeditor-nav">
+                <a class="is-active" href="{$home}">项目介绍</a>
+                <a href="{$template}">模板编辑</a>
+                <a href="{$category}">分类管理</a>
+            </nav>
+            <div class="codeditor-header__actions">
+                <a class="codeditor-github" href="https://github.com/indiboy-create/think-store-codeditor" target="_blank" rel="noopener">
+                    <i class="layui-icon layui-icon-log"></i><span>GitHub</span>
+                </a>
+                <span class="codeditor-version">{$version}</span>
+            </div>
+            <button type="button" class="codeditor-nav-toggle" id="codeditor-nav-toggle" aria-label="打开导航" aria-expanded="false" aria-controls="codeditor-nav">
+                <i class="layui-icon layui-icon-spread-left"></i>
+            </button>
+        </div>
+    </header>
 
 <main class="codeditor-intro-body">
     <section class="codeditor-hero">
         <div class="codeditor-container codeditor-hero__grid">
             <div class="codeditor-hero__main">
-                <span class="codeditor-badge codeditor-fade"><i class="layui-icon layui-icon-fire"></i> ThinkPHP 8 · Composer · Layui</span>
+                <span class="codeditor-badge codeditor-fade"><i class="layui-icon layui-icon-engine"></i> ThinkPHP 8 · Layui · Ace</span>
                 <p class="codeditor-kicker codeditor-fade codeditor-delay-1">Template IDE</p>
-                <h1 class="codeditor-hero__title codeditor-fade codeditor-delay-1">
-                    让模板编辑<br>回到 <em>项目里</em>
-                </h1>
-                <p class="codeditor-hero__desc codeditor-fade codeditor-delay-2">
-                    在浏览器中直接编辑 HTML + PHP 混合模板：Ace 负责混合高亮，layui 数据表格管理模板与分类，
-                    包内视图和静态资源由路由直接输出，主项目只需要注册路由并接入自己的鉴权。
-                </p>
-                <div class="codeditor-hero__tags codeditor-fade codeditor-delay-2">
-                    <span>HTML + PHP</span>
-                    <span class="is-ghost">ace/mode/php</span>
-                    <span class="is-ghost">layui 数据表格</span>
-                    <span class="is-ghost">完整快照历史</span>
+                <h1 class="codeditor-hero__title codeditor-fade codeditor-delay-1">模板编辑，留在<em>项目里</em></h1>
+                <p class="codeditor-hero__time codeditor-fade codeditor-delay-2">HTML + PHP 混合高亮 · 保存即写快照 · 包内视图直出</p>
+
+                <div class="codeditor-hero__metric codeditor-fade codeditor-delay-2">
+                    <span class="codeditor-hero__count"><span id="codeditor-route-total">--</span><small>条</small></span>
+                    <div class="codeditor-hero__desc">
+                        <span class="codeditor-hero__icon">🧩</span>
+                        <strong>路由</strong>
+                        <p>页面 · 接口 · 静态资源</p>
+                    </div>
                 </div>
-                <p class="codeditor-hero__actions codeditor-fade codeditor-delay-3">
-                    <a class="codeditor-btn codeditor-btn--primary" href="{$template}">
-                        <i class="layui-icon layui-icon-edit"></i> 打开模板编辑器
-                    </a>
-                    <a class="codeditor-btn codeditor-btn--ghost" href="{$category}">
-                        <i class="layui-icon layui-icon-list"></i> 分类管理
-                    </a>
-                </p>
-                <div class="codeditor-hero__stats codeditor-fade codeditor-delay-3">
-                    <div class="codeditor-stat">
-                        <div class="codeditor-stat__value">id / title / cid</div>
-                        <div class="codeditor-stat__label">列表字段</div>
-                    </div>
-                    <div class="codeditor-stat">
-                        <div class="codeditor-stat__value">template_category</div>
-                        <div class="codeditor-stat__label">分类表</div>
-                    </div>
-                    <div class="codeditor-stat">
-                        <div class="codeditor-stat__value">newstext_hash</div>
-                        <div class="codeditor-stat__label">历史去重</div>
-                    </div>
-                    <div class="codeditor-stat">
-                        <div class="codeditor-stat__value">{$version}</div>
-                        <div class="codeditor-stat__label">当前版本</div>
-                    </div>
+
+                <div class="codeditor-hero__tags codeditor-fade codeditor-delay-3">
+                    <span class="codeditor-hero__tag">youvision/think-store-codeditor</span>
+                    <span class="codeditor-hero__tag is-ghost">GET {$templateApi}/read</span>
+                    <span class="codeditor-hero__tag is-ghost">POST {$templateApi}/update</span>
                 </div>
             </div>
 
             <aside class="codeditor-hero__side">
                 <div class="codeditor-glass">
                     <div class="codeditor-glass__head">
-                        <span class="codeditor-eyebrow">Preview</span>
-                        <span class="codeditor-code">template/default/index.html</span>
+                        <span class="codeditor-eyebrow">接口概览</span>
+                        <span class="codeditor-code">{$base}</span>
                     </div>
-                    <pre class="codeditor-code-preview"><code>&lt;!DOCTYPE html&gt;
-&lt;html lang="zh-CN"&gt;
-&lt;head&gt;
-    &lt;meta charset="utf-8"&gt;
-    &lt;title&gt;&#36;title&lt;/title&gt;
-&lt;/head&gt;
-&lt;body&gt;
-    &lt;h1&gt;Hello ThinkPHP&lt;/h1&gt;
-    &lt;p&gt;&#123;&#36;content&#125;&lt;/p&gt;
-&lt;/body&gt;
-&lt;/html&gt;</code></pre>
-                    <div class="codeditor-glass__foot">
-                        <span><i class="layui-icon layui-icon-circle-dot"></i> ace/mode/php</span>
-                        <span>UTF-8 · LF</span>
+
+                    <div class="codeditor-glass__fields">
+                        <div class="codeditor-field"><span>模板接口</span><code>{$templateApi}</code></div>
+                        <div class="codeditor-field"><span>分类接口</span><code>{$categoryApi}</code></div>
+                        <div class="codeditor-field"><span>当前版本</span><code>{$version}</code></div>
+                    </div>
+
+                    <a class="codeditor-btn codeditor-btn--primary codeditor-btn--block" href="{$template}">
+                        <i class="layui-icon layui-icon-edit"></i> 打开模板编辑器
+                    </a>
+
+                    <p class="codeditor-hint">只读写数据库中的模板与快照，模板文件由白名单目录限制。</p>
+
+                    <div class="codeditor-quick">
+                        <a class="codeditor-quick__link" href="{$category}"><i class="layui-icon layui-icon-list"></i> 分类管理</a>
+                        <a class="codeditor-quick__link" href="https://github.com/indiboy-create/think-store-codeditor" target="_blank" rel="noopener"><i class="layui-icon layui-icon-log"></i> GitHub</a>
                     </div>
                 </div>
             </aside>
@@ -80,13 +93,9 @@
                 <div>
                     <span class="codeditor-eyebrow">Features</span>
                     <h2 class="codeditor-section__title">为模板编辑准备的能力</h2>
-                    <p class="codeditor-section__desc">
-                        页面、接口与静态资源全部由包内提供，主项目不需要复制视图或资源文件。
-                    </p>
+                    <p class="codeditor-section__desc">页面、接口与静态资源全部由包内提供，主项目不需要复制视图或资源文件。</p>
                 </div>
-                <a class="codeditor-section__link" href="{$template}">
-                    进入编辑器 <i class="layui-icon layui-icon-right"></i>
-                </a>
+                <a class="codeditor-section__link" href="{$template}">进入编辑器 <i class="layui-icon layui-icon-right"></i></a>
             </div>
             <div class="codeditor-card-grid">
                 <article class="codeditor-card">
@@ -94,16 +103,16 @@
                         <span class="codeditor-card__icon"><i class="layui-icon layui-icon-template-1"></i></span>
                         <h3>包内视图</h3>
                     </div>
-                    <p>theme/view 下的模板由包内 View 渲染器通过 think-view 输出，介绍页、编辑器页与分类页复用 layout 片段。</p>
-                    <p class="codeditor-card__meta">topthink/think-view · 缓存前缀 codeditor_</p>
+                    <p>theme/view 下的模板由包内 <code>View</code> 渲染器通过 think-view 输出，三页各自完整，公共头部与页脚按页面内联。</p>
+                    <span class="codeditor-card__meta">topthink/think-view · 缓存前缀 codeditor_</span>
                 </article>
                 <article class="codeditor-card">
                     <div class="codeditor-card__head">
                         <span class="codeditor-card__icon"><i class="layui-icon layui-icon-edit"></i></span>
                         <h3>模板编辑器</h3>
                     </div>
-                    <p>Ace Editor 的 ace/mode/php 模式，支持 HTML 与 PHP 混合高亮、自动换行、行号与括号匹配。</p>
-                    <p class="codeditor-card__meta">GET {$templateApi}/read · POST {$templateApi}/update</p>
+                    <p>Ace Editor 的 <code>ace/mode/php</code> 模式，支持 HTML 与 PHP 混合高亮、自动换行、行号与括号匹配。</p>
+                    <span class="codeditor-card__meta">GET {$templateApi}/read · POST {$templateApi}/update</span>
                 </article>
                 <article class="codeditor-card">
                     <div class="codeditor-card__head">
@@ -111,96 +120,144 @@
                         <h3>分类管理</h3>
                     </div>
                     <p>layui 数据表格展示分类，支持新增、编辑、删除与排序，操作人与站点由主项目 Session 统一提供。</p>
-                    <p class="codeditor-card__meta">GET {$categoryApi}/read · POST {$categoryApi}/create</p>
+                    <span class="codeditor-card__meta">GET {$categoryApi}/read · POST {$categoryApi}/create</span>
                 </article>
                 <article class="codeditor-card">
                     <div class="codeditor-card__head">
                         <span class="codeditor-card__icon"><i class="layui-icon layui-icon-time"></i></span>
                         <h3>编辑历史</h3>
                     </div>
-                    <p>保存时写入完整内容快照，使用 newstext_hash 去重；历史抽屉支持查看快照与一键还原。</p>
-                    <p class="codeditor-card__meta">GET {$templateApi}/history · POST {$templateApi}/history/restore</p>
+                    <p>保存时写入完整内容快照，使用 <code>newstext_hash</code> 去重；历史面板支持查看快照与一键还原。</p>
+                    <span class="codeditor-card__meta">GET {$templateApi}/history · POST {$templateApi}/history/restore</span>
                 </article>
             </div>
         </section>
-    </div>
 
-    <section class="codeditor-band">
-        <div class="codeditor-container codeditor-band__inner">
-            <div class="codeditor-section__head">
-                <div>
-                    <span class="codeditor-eyebrow">Workflow</span>
-                    <h2 class="codeditor-section__title">一次编辑，四个环节</h2>
-                    <p class="codeditor-section__desc">
-                        从模板列表进入编辑器，保存时写入快照，历史面板随时回看与还原，全流程留在包内完成。
-                    </p>
-                </div>
-            </div>
-            <div class="codeditor-flow">
-                <div class="codeditor-flow__step">
-                    <h4>选择模板</h4>
-                    <p>左侧数据表格按 ID、标题或分类筛选，点击即加载内容。</p>
-                    <code>GET {$templateApi}/read?id=1</code>
-                </div>
-                <div class="codeditor-flow__step">
-                    <h4>编辑内容</h4>
-                    <p>Ace 提供 HTML + PHP 混合高亮，Ctrl-S 直接保存。</p>
-                    <code>ace/mode/php</code>
-                </div>
-                <div class="codeditor-flow__step">
-                    <h4>保存快照</h4>
-                    <p>更新模板的同时写入完整快照，内容未变化则跳过。</p>
-                    <code>POST {$templateApi}/update</code>
-                </div>
-                <div class="codeditor-flow__step">
-                    <h4>回看与还原</h4>
-                    <p>历史面板按时间列出快照，可查看原文并一键还原。</p>
-                    <code>POST {$templateApi}/history/restore</code>
-                </div>
-            </div>
-            <div class="codeditor-band__actions">
-                <a class="codeditor-btn codeditor-btn--primary" href="{$template}">
-                    <i class="layui-icon layui-icon-edit"></i> 打开模板编辑器
-                </a>
-                <a class="codeditor-btn codeditor-btn--ghost" href="{$category}">
-                    <i class="layui-icon layui-icon-list"></i> 分类管理
-                </a>
-            </div>
-        </div>
-    </section>
-
-    <div class="codeditor-container codeditor-content">
         <section class="codeditor-section">
             <div class="codeditor-section__head">
                 <div>
                     <span class="codeditor-eyebrow">Endpoints</span>
                     <h2 class="codeditor-section__title">路由与接口</h2>
-                    <p class="codeditor-section__desc">
-                        路由由服务提供者在 boot 阶段注册，默认前缀 /store/think-store-codeditor，宿主项目无需复制路由文件。
-                    </p>
+                    <p class="codeditor-section__desc">路由由服务提供者在 boot 阶段注册，宿主项目无需复制路由文件。</p>
                 </div>
-                <span class="codeditor-section__tip">{$templateApi}/read</span>
+                <span class="codeditor-section__tip">默认前缀 /store/think-store-codeditor</span>
             </div>
-            <table class="codeditor-endpoints">
-                <thead>
-                    <tr>
-                        <th style="width: 90px">方法</th>
-                        <th>路径</th>
-                        <th style="width: 150px">名称</th>
-                        <th style="width: 90px">类型</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {volist name="routes" id="route"}
-                    <tr>
-                        <td><span class="codeditor-method{if condition="$route.method == 'POST'"} is-post{/if}">{$route.method}</span></td>
-                        <td><code>{$route.path}</code></td>
-                        <td>{$route.name}</td>
-                        <td class="codeditor-endpoints__type">{$route.type}</td>
-                    </tr>
-                    {/volist}
-                </tbody>
-            </table>
+
+            <div class="codeditor-table-card layui-card">
+                <div class="layui-card-header">
+                    <span>路由清单</span>
+                    <span class="codeditor-table-count" id="codeditor-route-count">--</span>
+                </div>
+                <div class="layui-card-body codeditor-table-wrap">
+                    <table class="codeditor-endpoints">
+                        <thead>
+                            <tr>
+                                <th style="width: 90px">方法</th>
+                                <th>路径</th>
+                                <th style="width: 150px">名称</th>
+                                <th style="width: 90px">类型</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {volist name="routes" id="route"}
+                            <tr>
+                                <td><span class="codeditor-method{if condition="$route.method == 'POST'"} is-post{/if}">{$route.method}</span></td>
+                                <td><code>{$route.path}</code></td>
+                                <td>{$route.name}</td>
+                                <td class="codeditor-endpoints__type">{$route.type}</td>
+                            </tr>
+                            {/volist}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="codeditor-note">
+                <i class="layui-icon layui-icon-tips"></i>
+                <span>路由前缀由 <code>config/store_codeditor.php</code> 的 <code>route.prefix</code> 与 <code>route.segment</code> 控制；静态资源由 <code>{$assets}/&lt;path&gt;</code> 直接输出，无需发布到 <code>public</code>。</span>
+            </div>
+        </section>
+
+        <section class="codeditor-section">
+            <div class="codeditor-section__head">
+                <div>
+                    <span class="codeditor-eyebrow">Documentation</span>
+                    <h2 class="codeditor-section__title">使用文档</h2>
+                    <p class="codeditor-section__desc">安装、配置与安全说明已整合到介绍页，无需跳转其他页面。</p>
+                </div>
+                <span class="codeditor-section__tip">3 节 · 随页面加载</span>
+            </div>
+
+            <div class="codeditor-doc-body">
+                <article class="codeditor-doc-card">
+                    <h3>安装与部署</h3>
+                    <p class="codeditor-doc-desc">需要 PHP 8.0 及以上与 ThinkPHP 8 主项目；服务会自动注册路由与配置，页面与静态资源均无需复制到主项目。</p>
+                    <div class="codeditor-steps">
+                        <article class="codeditor-step">
+                            <span class="codeditor-step__index">01</span>
+                            <h4>安装扩展</h4>
+                            <p>在主项目执行 <code>composer require youvision/think-store-codeditor</code>，<code>topthink/think-view</code> 会随依赖自动安装。</p>
+                        </article>
+                        <article class="codeditor-step">
+                            <span class="codeditor-step__index">02</span>
+                            <h4>注册服务</h4>
+                            <p>通常由 <code>post-autoload-dump</code> 自动执行 <code>service:discover</code> 与 <code>vendor:publish</code>；未配置脚本时请手动执行。</p>
+                        </article>
+                        <article class="codeditor-step">
+                            <span class="codeditor-step__index">03</span>
+                            <h4>打开编辑器</h4>
+                            <p>访问 <code>{$template}</code> 选择模板开始编辑，分类维护位于 <code>{$category}</code>。</p>
+                        </article>
+                        <article class="codeditor-step">
+                            <span class="codeditor-step__index">04</span>
+                            <h4>静态资源</h4>
+                            <p>layui、Ace 与页面样式由 <code>{$assets}/&lt;path&gt;</code> 直接输出，无需发布到 <code>public</code>。</p>
+                        </article>
+                    </div>
+                </article>
+
+                <article class="codeditor-doc-card">
+                    <h3>配置项</h3>
+                    <p class="codeditor-doc-desc">包内默认配置会与主项目配置合并，项目侧配置优先；修改后清除 <code>runtime</code> 缓存即可生效。</p>
+                    <div class="codeditor-config">
+                        <div class="codeditor-config__row">
+                            <span class="codeditor-config__key">route.prefix</span>
+                            <span class="codeditor-config__value">默认 <code>store</code>。路由前缀，留空表示不添加前缀。</span>
+                        </div>
+                        <div class="codeditor-config__row">
+                            <span class="codeditor-config__key">route.segment</span>
+                            <span class="codeditor-config__value">默认 <code>think-store-codeditor</code>。包内命名空间，留空表示直接挂在路由前缀下。</span>
+                        </div>
+                        <div class="codeditor-config__row">
+                            <span class="codeditor-config__key">route.middleware</span>
+                            <span class="codeditor-config__value">默认 <code>[]</code>。应用到整组路由的中间件，生产环境请接入主项目鉴权。</span>
+                        </div>
+                        <div class="codeditor-config__row">
+                            <span class="codeditor-config__key">database.table</span>
+                            <span class="codeditor-config__value">默认 <code>template</code>。模板数据表名，不含表前缀，读取 id、title、cid 等固定字段。</span>
+                        </div>
+                        <div class="codeditor-config__row">
+                            <span class="codeditor-config__key">history.limit</span>
+                            <span class="codeditor-config__value">默认 <code>50</code>。每个模板保留的最近快照条数，<code>0</code> 表示不裁剪。</span>
+                        </div>
+                        <div class="codeditor-config__row">
+                            <span class="codeditor-config__key">file.root</span>
+                            <span class="codeditor-config__value">默认 <code>template</code>。仅在新增模板创建文件时生效，配合 <code>file.allow_dirs</code> 与 <code>file.ext</code> 白名单。</span>
+                        </div>
+                    </div>
+                </article>
+
+                <article class="codeditor-doc-card">
+                    <h3>安全与缓存</h3>
+                    <p class="codeditor-doc-desc">模板内容可直接写入数据库与受限目录，生产环境请按需限制访问。</p>
+                    <ul class="codeditor-list">
+                        <li>为 <code>route.middleware</code> 配置登录鉴权中间件，避免模板被匿名修改。</li>
+                        <li>文件写入受 <code>file.root</code>、<code>file.allow_dirs</code>、<code>file.ext</code> 限制，路径经过校验并拒绝目录穿越；<code>file.overwrite</code> 为 <code>false</code> 时不会覆盖已有文件。</li>
+                        <li>历史快照写入 <code>database.history_table</code>，使用 <code>newstext_hash</code> 去重，<code>history.limit</code> 控制保留条数。</li>
+                        <li>模板编译缓存写入主项目 <code>runtime/temp/codeditor_*.php</code>；修改模板未生效时清理缓存或执行 <code>php think clear</code>。</li>
+                    </ul>
+                </article>
+            </div>
         </section>
 
         <section class="codeditor-section">
@@ -242,4 +299,89 @@
     </div>
 </main>
 
-{include file="layout/footer" /}
+<script>
+(function () {
+    var rows = document.querySelectorAll('.codeditor-endpoints tbody tr');
+    var total = document.getElementById('codeditor-route-total');
+    var count = document.getElementById('codeditor-route-count');
+
+    if (total) {
+        total.textContent = String(rows.length);
+    }
+
+    if (count) {
+        count.textContent = rows.length + ' 条';
+    }
+})();
+</script>
+
+<footer class="codeditor-footer">
+    <div class="codeditor-container">
+        <div class="codeditor-footer__grid">
+            <div>
+                <a class="codeditor-brand codeditor-footer__brand" href="{$home}">
+                    <span class="codeditor-brand__mark"><i class="layui-icon layui-icon-console"></i></span>
+                    <span class="codeditor-brand__name">Codeditor<small>THINK STORE CODEDITOR</small></span>
+                </a>
+                <p class="codeditor-footer__desc">
+                    youvision/think-store-codeditor：面向 ThinkPHP 8 的模板代码编辑器，包内提供视图、静态资源、模板编辑、分类管理与编辑历史。
+                </p>
+            </div>
+            <div>
+                <h4>页面</h4>
+                <div class="codeditor-footer__links">
+                    <a href="{$home}">项目介绍</a>
+                    <a href="{$template}">模板编辑</a>
+                    <a href="{$category}">分类管理</a>
+                </div>
+            </div>
+            <div>
+                <h4>接口</h4>
+                <div class="codeditor-footer__links">
+                    <a href="{$templateApi}/read">读取模板</a>
+                    <a href="{$categoryApi}/read">读取分类</a>
+                    <a href="{$templateApi}/history">编辑历史</a>
+                </div>
+            </div>
+            <div>
+                <h4>资源</h4>
+                <div class="codeditor-footer__links">
+                    <a href="https://github.com/indiboy-create/think-store-codeditor" target="_blank" rel="noopener">GitHub 仓库</a>
+                    <a href="https://github.com/indiboy-create/think-store-codeditor#readme" target="_blank" rel="noopener">使用文档</a>
+                    <a href="https://layui.dev/" target="_blank" rel="noopener">Layui 文档</a>
+                    <a href="https://www.thinkphp.cn/" target="_blank" rel="noopener">ThinkPHP 官网</a>
+                </div>
+            </div>
+        </div>
+        <div class="codeditor-footer__bottom">
+            <span>© 2026 youvision/think-store-codeditor</span>
+            <span>Built with ThinkPHP 8 · Layui · Ace<span class="codeditor-footer__version">{$version}</span></span>
+        </div>
+    </div>
+</footer>
+</div>
+<script>
+(function () {
+    var toggle = document.getElementById('codeditor-nav-toggle');
+    var nav = document.getElementById('codeditor-nav');
+
+    if (!toggle || !nav) {
+        return;
+    }
+
+    toggle.addEventListener('click', function () {
+        var open = nav.classList.toggle('is-open');
+        toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+
+    nav.addEventListener('click', function (event) {
+        if (event.target.tagName === 'A') {
+            nav.classList.remove('is-open');
+            toggle.setAttribute('aria-expanded', 'false');
+        }
+    });
+})();
+</script>
+<script src="{$assets}/layui/layui.js"></script>
+</body>
+</html>

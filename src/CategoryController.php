@@ -32,11 +32,31 @@ class CategoryController
             'template'    => $this->codeditor->template(),
             'category'    => $this->codeditor->category(),
             'assets'      => $this->codeditor->assets(),
+            'templateApi' => $this->codeditor->apiTemplate(),
             'categoryApi' => $this->codeditor->apiCategory(),
             'version'     => $this->codeditor->version(),
             'active'      => 'category',
             'title'       => '模板分类管理',
             'description' => '维护模板分类，支持新增、编辑、删除与排序。',
+        ]);
+    }
+
+    /**
+     * 渲染 iframe 版分类管理页，复用分类读取、新增、更新与删除接口。
+     */
+    public function iframe(): string
+    {
+        return $this->view->render('iframe/category', [
+            'base'        => $this->codeditor->base(),
+            'home'        => $this->codeditor->index(),
+            'template'    => $this->codeditor->template(),
+            'category'    => $this->codeditor->category(),
+            'assets'      => $this->codeditor->assets(),
+
+            'categoryApi' => $this->codeditor->apiCategory(),
+            'version'     => $this->codeditor->version(),
+            'title'       => '模板分类管理',
+            'description' => 'iframe 版分类管理：树形表格展示分类，支持新增、编辑与删除。',
         ]);
     }
 
