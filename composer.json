@@ -41,6 +41,9 @@
             "config": {
                 "store_codeditor": "config/store_codeditor.php"
             }
+        },
+        "store": {
+            "home": "/store/think-store-codeditor/index"
         }
     },
     "config": {

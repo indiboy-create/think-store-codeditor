@@ -2,10 +2,11 @@
     'use strict';
 
     var config = window.CODEDITOR_CATEGORY || {};
-    var readUrl = config.read || '';
-    var createUrl = config.create || '';
-    var updateUrl = config.update || '';
-    var deleteUrl = config.delete || '';
+    var base = (config.api || '').replace(/\/+$/, '');
+    var readUrl = config.read || (base + '/api/category/read');
+    var createUrl = config.create || (base + '/api/category/create');
+    var updateUrl = config.update || (base + '/api/category/update');
+    var deleteUrl = config.delete || (base + '/api/category/delete');
 
     var layer = null;
     var table = null;

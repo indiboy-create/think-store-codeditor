@@ -1,12 +1,14 @@
 <?php
 
+// 复制到项目 config/store_codeditor.php 后即可覆盖下列默认值
 return [
     /*
     |--------------------------------------------------------------------------
     | 内置路由
     |--------------------------------------------------------------------------
-    | 控制页面、接口与静态资源路由是否随服务自动注册。
-    | 最终地址为 /{prefix}/{rule}。
+    | 最终地址为 /{prefix}/{segment}/index、/{prefix}/{segment}/category，
+    | JSON 接口为 /{prefix}/{segment}/api/template/* 与 /api/category/*，
+    | 静态资源为 /{prefix}/{segment}/assets/*。
     */
     'route' => [
         // 是否启用内置路由；关闭后可在应用路由文件中自行定义
@@ -15,51 +17,36 @@ return [
         // 路由前缀，留空表示不添加前缀，例如 store、api/store
         'prefix' => 'store',
 
+        // 包内命名空间，留空表示页面直接挂在路由前缀下
+        'segment' => 'think-store-codeditor',
+
         // 应用到整组路由上的中间件，例如 [\app\middleware\Auth::class]
         // 生产环境请接入主项目鉴权中间件，避免模板被匿名修改
         'middleware' => [],
-
-        // 页面、接口与资源路由规则，均相对于 prefix
-        'rules' => [
-            // 编辑器页面，GET 请求
-            'index' => 'think-store-codeditor/index',
-
-            // 读取接口，GET 请求；带 id 读取单条，不带 id 返回模板列表
-            'read' => 'think-store-codeditor/read',
-
-            // 更新接口，POST 请求；按 id 更新模板内容
-            'update' => 'think-store-codeditor/update',
-
-            // 新增接口，POST 请求；新增模板记录，可选同时创建模板文件
-            'create' => 'think-store-codeditor/create',
-
-            // 分类管理页面，GET 请求
-            'category' => 'think-store-codeditor/category',
-
-            // 分类列表接口，GET 请求；带 id 读取单条
-            'category_read' => 'think-store-codeditor/category/read',
-
-            // 分类新增接口，POST 请求
-            'category_create' => 'think-store-codeditor/category/create',
-
-            // 分类更新接口，POST 请求
-            'category_update' => 'think-store-codeditor/category/update',
-
-            // 分类删除接口，POST 请求
-            'category_delete' => 'think-store-codeditor/category/delete',
-        ],
-
-        // 包内静态资源规则前缀，最终地址为 /{prefix}/{assets}/<path>
-        'assets' => 'assets',
     ],
 
     /*
     |--------------------------------------------------------------------------
+    | 静态资源
+    |--------------------------------------------------------------------------
+    | 相对路径会拼在包内命名空间后，也可填写以 / 开头的绝对路径。
+    */
+    'assets' => 'assets',
 
+    /*
+    |--------------------------------------------------------------------------
+    | 视图目录
+    |--------------------------------------------------------------------------
+    | 视图目录名，相对包内 theme 目录；也可填写以 / 开头的绝对路径。
+    */
+    'view' => 'view',
+
+    /*
+    |--------------------------------------------------------------------------
     | 模板数据表
     |--------------------------------------------------------------------------
-    | 读取和写入的数据源，字段名可自由映射，默认读取 template 表的
-    | id 与 newstext 字段。表名不含数据库前缀，由框架自动拼接。
+    | 读取和写入的数据源，固定读取 template 表的 id、title、cid、
+    | intro、path、newstext 字段。表名不含数据库前缀，由框架自动拼接。
     */
     'database' => [
         // 模板数据表名，不含表前缀
@@ -68,29 +55,40 @@ return [
         // 分类数据表名，不含表前缀
         'category_table' => 'template_category',
 
-        // 模板主键字段名
-        'id_field' => 'id',
+        // 历史数据表名，不含表前缀
+        'history_table' => 'template_history',
 
-        // 分类 id 字段名
-        'cid_field' => 'cid',
+    ],
 
-        // 模板标题字段名
-        'title_field' => 'title',
+    /*
+    |--------------------------------------------------------------------------
+    | 主项目 Session
+    |--------------------------------------------------------------------------
+    | 从主项目登录态读取操作人与站点，模板、分类、历史三个表共用。
+    */
+    'session' => [
+        // 操作人 id 的 Session 键，留空记为 0
+        'admin_session_key' => '',
 
-        // 模板介绍字段名
-        'intro_field' => 'intro',
+        // 站点 id 的 Session 键，留空记为 0
+        'site_session_key' => '',
+    ],
 
-        // 模板主输出路径
-        'path_field' => 'path',
+    /*
+    |--------------------------------------------------------------------------
+    | 编辑历史
+    |--------------------------------------------------------------------------
+    | 历史表名位于 database.history_table，保存完整快照用于查看与还原。
+    */
+    'history' => [
+        // 是否记录模板编辑历史
+        'enabled' => true,
 
-        // 模板内容字段名，编辑器内容保存到该字段
-        'content_field' => 'newstext',
+        // 每个模板保留最近多少条，0 表示不裁剪
+        'limit' => 50,
 
-        // 模板列表接口最多返回的记录数，避免大表拖慢页面
-        'list_limit' => 200,
-
-        // 模板列表摘要的最大字符数，0 表示不截断；只影响列表展示，不影响正文
-        'excerpt_length' => 60,
+        // 新增模板时记录初始版本
+        'record_on_create' => true,
     ],
 
     /*

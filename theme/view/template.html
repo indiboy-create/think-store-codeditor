@@ -1,0 +1,108 @@
+{include file="layout/head" /}
+{include file="layout/header" /}
+
+<div class="codeditor-body">
+    <aside class="codeditor-sidebar">
+        <div class="codeditor-sidebar__head">
+            <span>模板列表</span>
+            <span class="codeditor-badge" id="tpl-count">0</span>
+        </div>
+        <div class="codeditor-sidebar__search">
+            <input type="text" id="tpl-search" class="layui-input" placeholder="按 ID、标题或分类筛选">
+        </div>
+        <div class="codeditor-table">
+            <table id="tpl-table" lay-filter="tpl-table"></table>
+        </div>
+    </aside>
+
+    <section class="codeditor-main">
+        <div class="codeditor-toolbar">
+            <div class="codeditor-toolbar__left">
+                <span class="codeditor-dot" id="dirty-dot"></span>
+                <span class="codeditor-current" id="current-title">未选择模板</span>
+            </div>
+            <div class="codeditor-toolbar__right">
+                <span class="codeditor-chip">ace/mode/php</span>
+                <span class="codeditor-chip" id="char-count">0 字符</span>
+                <button type="button" class="layui-btn layui-btn-xs layui-btn-primary" id="btn-refresh">
+                    <i class="layui-icon layui-icon-refresh"></i> 刷新
+                </button>
+                <button type="button" class="layui-btn layui-btn-xs layui-btn-primary" id="btn-history" disabled>
+                    <i class="layui-icon layui-icon-time"></i> 历史
+                </button>
+                <button type="button" class="layui-btn layui-btn-xs layui-btn-normal" id="btn-save">
+                    <i class="layui-icon layui-icon-ok"></i> 保存
+                </button>
+                <button type="button" class="layui-btn layui-btn-xs" id="btn-create">
+                    <i class="layui-icon layui-icon-add-1"></i> 新增
+                </button>
+            </div>
+        </div>
+        <div class="codeditor-editor">
+            <div id="editor"></div>
+        </div>
+        <footer class="codeditor-status">
+            <span id="status-msg">就绪</span>
+            <span id="status-meta">行 1，列 1</span>
+        </footer>
+    </section>
+</div>
+
+<script type="text/html" id="create-form-tpl">
+    <div class="codeditor-create">
+        <form class="layui-form codeditor-form" lay-filter="codeditor-create">
+            <div class="layui-form-item">
+                <label class="layui-form-label">模板内容</label>
+                <div class="layui-input-block">
+                    <textarea name="content" class="layui-textarea codeditor-create-content"></textarea>
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">修改说明</label>
+                <div class="layui-input-block">
+                    <input type="text" name="intro" class="layui-input" placeholder="可选，例如：创建首页模板">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">模板文件</label>
+                <div class="layui-input-block">
+                    <input type="text" name="file" class="layui-input" placeholder="可选，例如 default/index.html">
+                    <div class="codeditor-tip">
+                        相对可编辑目录的路径，留空只写入数据库记录；文件路径与扩展名受 config/store_codeditor.php 限制。
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</script>
+
+<script type="text/html" id="history-panel-tpl">
+    <div class="codeditor-history">
+        <div class="codeditor-history__head">
+            <span class="codeditor-history__title" id="history-template-title">编辑历史</span>
+            <button type="button" class="layui-btn layui-btn-sm layui-btn-primary" id="btn-history-refresh">
+                <i class="layui-icon layui-icon-refresh"></i> 刷新
+            </button>
+        </div>
+        <table id="history-table" lay-filter="history-table"></table>
+    </div>
+</script>
+
+<script type="text/html" id="history-toolbar">
+    <a class="layui-btn layui-btn-xs" lay-event="view">查看</a>
+    <a class="layui-btn layui-btn-xs layui-btn-normal" lay-event="restore">还原</a>
+</script>
+
+<script>
+window.CODEDITOR_CONFIG = {
+    api: '{$base}',
+    assets: '{$assets}',
+    read: '{$templateApi}/read',
+    update: '{$templateApi}/update',
+    create: '{$templateApi}/create',
+    history: '{$historyApi}',
+    historyDetail: '{$historyDetail}',
+    historyRestore: '{$historyRestore}'
+};
+</script>
+{include file="layout/footer" /}

@@ -24,18 +24,18 @@ class Categories
         'status',
         'intro',
         'is_last',
-        'admin_id',
-        'site_id',
     ];
 
     /**
      * 整型字段。
      */
-    private const INTEGER_FIELDS = ['sort', 'admin_id', 'site_id'];
+    private const INTEGER_FIELDS = ['sort'];
 
     protected string $table;
 
-    public function __construct(array $config = [])
+    protected Operator $operator;
+
+    public function __construct(array $config = [], ?Operator $operator = null)
     {
         $database = (array) ($config['database'] ?? []);
         $table    = (string) ($database['category_table'] ?? 'template_category');
@@ -44,7 +44,8 @@ class Categories
             throw new InvalidArgumentException('分类数据表名只允许英文、数字与下划线');
         }
 
-        $this->table = $table;
+        $this->table    = $table;
+        $this->operator = $operator ?? new Operator($config);
     }
 
     /**
@@ -89,6 +90,17 @@ class Categories
         $data = $this->payload($input);
         $now  = time();
 
+        $adminId = $this->operator->adminId();
+        $siteId  = $this->operator->siteId();
+
+        if ($adminId > 0) {
+            $data['admin_id'] = $adminId;
+        }
+
+        if ($siteId > 0) {
+            $data['site_id'] = $siteId;
+        }
+
         $data['create_time'] = $now;
         $data['update_time'] = $now;
 
@@ -110,6 +122,17 @@ class Categories
         }
 
         $data = $this->payload($input);
+
+        $adminId = $this->operator->adminId();
+        $siteId  = $this->operator->siteId();
+
+        if ($adminId > 0) {
+            $data['admin_id'] = $adminId;
+        }
+
+        if ($siteId > 0) {
+            $data['site_id'] = $siteId;
+        }
 
         if ($data === []) {
             return true;

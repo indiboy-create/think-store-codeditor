@@ -5,9 +5,9 @@
 
 # youvision/think-store-codeditor
 
-ThinkPHP 8 模板代码编辑器扩展：通过包内 `View` 渲染 layui 管理页面，在 [Ace Editor](https://github.com/ajaxorg/ace) 中编辑 HTML + PHP 混合模板；提供页面、读取、更新、新增与静态资源路由，静态资源无需发布到宿主 `public`。
+ThinkPHP 8 模板代码编辑器扩展：通过包内 `View` 渲染 layui 管理页面，在 [Ace Editor](https://github.com/ajaxorg/ace) 中编辑 HTML + PHP 混合模板；页面、JSON 接口与静态资源均由包内路由输出，静态资源无需发布到宿主 `public`。
 
-编辑器默认读取 `template` 数据表的 `id` 与 `newstext` 字段，数据表、字段、路由前缀与可编辑目录均可写入 `config/store_codeditor.php` 自定义。
+编辑器默认读取 `template` 数据表的 `id` 与 `newstext` 字段，数据表名、路由前缀、包内命名空间与可编辑目录均可写入 `config/store_codeditor.php` 自定义；模板字段固定为 `id`、`title`、`cid`、`intro`、`path`、`newstext`。包在 `composer.json` 的 `extra.store.home` 中声明首页 `/store/think-store-codeditor/index`，可被 `youvision/think-store` 识别。
 
 ## 环境要求
 
@@ -34,39 +34,50 @@ php think vendor:publish
 
 | 方法 | 地址 | 说明 |
 | --- | --- | --- |
-| GET | `/store/think-store-codeditor/index` | 渲染模板代码编辑器页面 |
-| GET | `/store/think-store-codeditor/read` | 读取模板列表，或按 `id` 读取单条模板 |
-| POST | `/store/think-store-codeditor/update` | 按 `id` 更新模板内容 |
-| POST | `/store/think-store-codeditor/create` | 新增模板记录，可选创建模板文件 |
+| GET | `/store/think-store-codeditor/index` | 渲染项目介绍页面 |
+| GET | `/store/think-store-codeditor/template` | 渲染模板代码编辑器页面 |
 | GET | `/store/think-store-codeditor/category` | 渲染模板分类管理页面 |
-| GET | `/store/think-store-codeditor/category/read` | 读取分类列表，或按 `id` 读取单条分类 |
-| POST | `/store/think-store-codeditor/category/create` | 新增分类 |
-| POST | `/store/think-store-codeditor/category/update` | 按 `id` 更新分类 |
-| POST | `/store/think-store-codeditor/category/delete` | 按 `id` 删除分类 |
-| GET | `/store/assets/<path>` | 直接输出包内 `theme/assets`，含 layui、Ace 与页面资源 |
+| GET | `/store/think-store-codeditor/api/template/read` | 读取模板列表，或按 `id` 读取单条模板 |
+| POST | `/store/think-store-codeditor/api/template/update` | 按 `id` 更新模板内容 |
+| POST | `/store/think-store-codeditor/api/template/create` | 新增模板记录，可选创建模板文件 |
+| GET | `/store/think-store-codeditor/api/template/history` | 读取模板编辑历史列表 |
+| GET | `/store/think-store-codeditor/api/template/history/detail` | 读取历史快照详情 |
+| POST | `/store/think-store-codeditor/api/template/history/restore` | 用历史快照覆盖模板内容 |
+| GET | `/store/think-store-codeditor/api/category/read` | 读取分类列表，或按 `id` 读取单条分类 |
+| POST | `/store/think-store-codeditor/api/category/create` | 新增分类 |
+| POST | `/store/think-store-codeditor/api/category/update` | 按 `id` 更新分类 |
+| POST | `/store/think-store-codeditor/api/category/delete` | 按 `id` 删除分类 |
+| GET | `/store/think-store-codeditor/assets/<path>` | 直接输出包内 `theme/assets`，含 layui、Ace 与页面资源 |
 
-路由前缀由 `config/store_codeditor.php` 的 `route.prefix` 控制，默认 `store`；设为空字符串时地址变为 `/think-store-codeditor/index`、`/think-store-codeditor/read` 等。页面、接口与资源规则分别由 `route.rules` 与 `route.assets` 配置，修改后模板内的地址会自动跟随，不需要手工同步页面文件。
+路由前缀由 `config/store_codeditor.php` 的 `route.prefix` 控制，默认 `store`；包内命名空间由 `route.segment` 控制，默认 `think-store-codeditor`；静态资源路径由顶层 `assets` 控制，默认 `assets`。`route.prefix` 设为空字符串时介绍页变为 `/think-store-codeditor/index`；`route.segment` 设为空字符串时页面直接挂在路由前缀下，例如 `/store/index` 与 `/store/template`；`assets` 以 `/` 开头时视为外部托管的绝对地址。页面、接口与资源地址由 `StoreCodeditor` 统一推导，修改配置后模板与脚本会自动跟随。
 
 ## 页面与静态资源
 
 - 模板位于包内 `theme/view`，由包内 `View` 渲染器通过 think-view 的 `Think` 驱动渲染，不依赖主项目的 `view_path`，也不需要复制到主项目。
+- `theme/view/layout` 存放公共的 head、header 与 footer 片段，介绍页、编辑器页与分类页通过 `{include}` 复用。
 - 静态资源由 `AssetController` 读取 `theme/assets` 后输出，路径经过 `realpath` 校验并拒绝 `..`，避免目录穿越。
 - 资源响应带 `Cache-Control: public, max-age=86400`，字体、CSS、JS、图片等类型会返回对应的 `Content-Type`。
+- 页面、接口与资源地址由 `StoreCodeditor` 根据 `route.prefix`、`route.segment` 与 `assets` 推导，修改配置后无需改动模板。
 
 ```text
 /store/think-store-codeditor/index
-/store/assets/layui/css/layui.css
-/store/assets/ace/ace.js
+/store/think-store-codeditor/template
+/store/think-store-codeditor/category
+/store/think-store-codeditor/assets/layui/css/layui.css
+/store/think-store-codeditor/assets/ace/ace.js
 ```
 
 ## 页面功能
 
-- 左侧模板列表：layui 数据表格，显示 ID、内容摘要与字符数，支持排序与按 ID 或摘要筛选
+- 项目介绍：`/index` 展示包简介、路由清单、包信息与快速开始，提供进入编辑器与分类管理的入口
+- 模板编辑器：`/template` 提供模板列表与 Ace 编辑区
+- 左侧模板列表：layui 数据表格，显示 ID、标题与分类，支持排序与按 ID、标题或分类筛选
 - 主编辑区：Ace Editor 的 `ace/mode/php` 模式，支持 HTML + PHP 混合高亮、自动换行、行号与括号匹配
 - 保存模板：按 ID 更新 `newstext`，支持 `Ctrl + S` 快捷键
 - 新增模板：新增一条模板记录，可选填写受限制目录内的文件路径，同时生成模板文件
 - 分类管理：编辑器页右上角进入分类管理，layui 数据表格展示分类，支持新增、编辑、删除
 - 分类字段：分类标题、分类名称、分类图片、分类介绍、排序、状态、最后一级、管理员 ID、站点 ID
+- 编辑历史：编辑器页「历史」按钮打开历史抽屉，查看内容快照并还原；保存时可填写修改说明
 - 未保存状态提示与切换确认
 
 ## 接口
@@ -86,7 +97,7 @@ php think vendor:publish
 ### 读取模板
 
 ```http
-GET /store/think-store-codeditor/read
+GET /store/think-store-codeditor/api/template/read
 ```
 
 不带参数时返回模板列表：
@@ -98,8 +109,8 @@ GET /store/think-store-codeditor/read
   "data": {
     "total": 2,
     "items": [
-      { "id": 2, "excerpt": "首页模板 …", "length": 128 },
-      { "id": 1, "excerpt": "关于我们 …", "length": 96 }
+      { "id": 2, "title": "首页模板", "cid": 1 },
+      { "id": 1, "title": "关于我们", "cid": 1 }
     ]
   }
 }
@@ -108,7 +119,7 @@ GET /store/think-store-codeditor/read
 带 `id` 参数时返回单条模板：
 
 ```http
-GET /store/think-store-codeditor/read?id=1
+GET /store/think-store-codeditor/api/template/read?id=1
 ```
 
 ```json
@@ -127,7 +138,7 @@ GET /store/think-store-codeditor/read?id=1
 ### 更新模板
 
 ```http
-POST /store/think-store-codeditor/update
+POST /store/think-store-codeditor/api/template/update
 Content-Type: application/json
 ```
 
@@ -155,7 +166,7 @@ Content-Type: application/json
 ### 新增模板
 
 ```http
-POST /store/think-store-codeditor/create
+POST /store/think-store-codeditor/api/template/create
 Content-Type: application/json
 ```
 
@@ -193,7 +204,7 @@ Content-Type: application/json
 读取分类列表：
 
 ```http
-GET /store/think-store-codeditor/category/read
+GET /store/think-store-codeditor/api/category/read
 ```
 
 响应 `data.items` 为分类数组，字段包含 `id`、`title`、`titlepic`、`name`、`sort`、`status`、`intro`、`is_last`、`admin_id`、`site_id`、`create_time`、`update_time`。
@@ -201,7 +212,7 @@ GET /store/think-store-codeditor/category/read
 新增分类：
 
 ```http
-POST /store/think-store-codeditor/category/create
+POST /store/think-store-codeditor/api/category/create
 Content-Type: application/json
 ```
 
@@ -224,7 +235,7 @@ Content-Type: application/json
 更新分类：
 
 ```http
-POST /store/think-store-codeditor/category/update
+POST /store/think-store-codeditor/api/category/update
 Content-Type: application/json
 ```
 
@@ -233,7 +244,7 @@ Content-Type: application/json
 删除分类：
 
 ```http
-POST /store/think-store-codeditor/category/delete
+POST /store/think-store-codeditor/api/category/delete
 Content-Type: application/json
 ```
 
@@ -242,6 +253,39 @@ Content-Type: application/json
 ```
 
 `id` 不存在时返回 HTTP 404 与 `code: 1`。
+
+### 编辑历史
+
+历史接口与模板接口共用统一的 `{code, msg, data}` 结构，只提供列表、详情、覆盖 template 三个接口。
+
+读取某模板的历史列表：
+
+```http
+GET /store/think-store-codeditor/api/template/history?template_id=1
+```
+
+返回 `data.items` 数组，字段包含 `id`、`template_id`、`title`、`intro`、`newstime`、`admin_id`、`site_id`、`create_time`、`update_time`，不返回 `newstext` 与 `newstext_hash`。
+
+读取历史详情：
+
+```http
+GET /store/think-store-codeditor/api/template/history/detail?id=1
+```
+
+返回 `newstext` 与上述元数据；可附带 `template_id` 校验历史归属。
+
+还原到历史版本：
+
+```http
+POST /store/think-store-codeditor/api/template/history/restore
+Content-Type: application/json
+```
+
+```json
+{ "id": 1 }
+```
+
+服务端读取历史快照，把覆盖前的当前内容再写入一条历史，然后用快照更新 `template.newstext`；只恢复内容，不恢复分类、标题与介绍。
 
 ## 数据表
 
@@ -280,7 +324,30 @@ CREATE TABLE `template_category` (
 
 分类表名由 `database.category_table` 配置，可通过 `$templates->categories()` 读取启用分类。
 
-表名、字段名全部可配置，见下文 `database` 配置。
+模板编辑历史表 `template_history` 通过 `template_id` 关联模板，保存完整内容快照：
+
+```sql
+CREATE TABLE `template_history` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '历史id',
+  `template_id` int unsigned NOT NULL DEFAULT 0 COMMENT '模板id',
+  `title` varchar(255) NOT NULL DEFAULT '' COMMENT '模板标题快照',
+  `intro` varchar(255) NOT NULL DEFAULT '' COMMENT '修改说明',
+  `newstext` longtext NULL COMMENT '模板内容快照',
+  `newstext_hash` char(64) NOT NULL DEFAULT '' COMMENT '内容sha256',
+  `newstime` int unsigned NOT NULL DEFAULT 0 COMMENT '修改快照时间',
+  `admin_id` int unsigned NOT NULL DEFAULT 0 COMMENT '管理员id',
+  `site_id` int unsigned NOT NULL DEFAULT 0 COMMENT '站点id',
+  `create_time` int unsigned NOT NULL DEFAULT 0 COMMENT '记录创建时间',
+  `update_time` int unsigned NOT NULL DEFAULT 0 COMMENT '记录更新时间',
+  PRIMARY KEY (`id`),
+  KEY `idx_template_id` (`template_id`, `id`),
+  KEY `idx_create_time` (`create_time`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='模板编辑历史表';
+```
+
+历史表名由 `database.history_table` 配置；保存时用 `newstext_hash` 与最近一条历史比较，内容未变化不重复记录；每个模板保留最近 `history.limit` 条；模板删除时需按 `template_id` 清理历史。
+
+表名可配置，模板字段固定，见下文 `database` 配置。
 
 ## 配置
 
@@ -290,20 +357,12 @@ CREATE TABLE `template_category` (
 | --- | --- | --- |
 | `route.enabled` | `true` | 是否随服务自动注册页面、接口与资源路由；关闭后可在主项目 `route` 目录自行注册 |
 | `route.prefix` | `store` | 路由前缀，留空表示不带前缀 |
+| `route.segment` | `think-store-codeditor` | 包内命名空间，留空表示页面直接挂在路由前缀下 |
 | `route.middleware` | `[]` | 应用到整组路由上的中间件，可填写主项目鉴权中间件类名或别名 |
-| `route.rules.index` | `think-store-codeditor/index` | 编辑器页面规则，注册为 GET |
-| `route.rules.read` | `think-store-codeditor/read` | 读取接口规则，注册为 GET |
-| `route.rules.update` | `think-store-codeditor/update` | 更新接口规则，注册为 POST |
-| `route.rules.create` | `think-store-codeditor/create` | 新增接口规则，注册为 POST |
-| `route.rules.category` | `think-store-codeditor/category` | 分类管理页面规则，注册为 GET |
-| `route.rules.category_read` | `think-store-codeditor/category/read` | 分类读取接口规则，注册为 GET |
-| `route.rules.category_create` | `think-store-codeditor/category/create` | 分类新增接口规则，注册为 POST |
-| `route.rules.category_update` | `think-store-codeditor/category/update` | 分类更新接口规则，注册为 POST |
-| `route.rules.category_delete` | `think-store-codeditor/category/delete` | 分类删除接口规则，注册为 POST |
-| `route.assets` | `assets` | 静态资源规则前缀，最终地址为 `/{prefix}/{assets}/<path>` |
+| `assets` | `assets` | 顶层静态资源地址；相对路径拼在命名空间后，`/` 开头视为外部托管的绝对地址 |
+| `view` | `view` | 顶层视图目录名，相对包内 `theme` 目录；`/` 开头视为绝对路径 |
 
-`route.rules` 与 `route.assets` 不能为空且不能重复，否则路由文件不会注册。
-
+`route.segment` 留空时页面落在 `/{prefix}/index`、`/{prefix}/category` 与 `/{prefix}/api/*`；`assets` 留空时回退为 `assets`；`view` 留空时回退为 `view`，即渲染 `theme/view`。
 
 ### database 数据库
 
@@ -311,16 +370,29 @@ CREATE TABLE `template_category` (
 | --- | --- | --- |
 | `database.table` | `template` | 模板数据表名，不含表前缀，框架自动拼接 |
 | `database.category_table` | `template_category` | 分类数据表名，不含表前缀，框架自动拼接 |
-| `database.id_field` | `id` | 模板主键字段名 |
-| `database.cid_field` | `cid` | 分类 id 字段名 |
-| `database.title_field` | `title` | 模板标题字段名 |
-| `database.intro_field` | `intro` | 模板介绍字段名 |
-| `database.path_field` | `path` | 模板主输出路径字段名 |
-| `database.content_field` | `newstext` | 模板内容字段名 |
-| `database.list_limit` | `200` | 模板列表接口最多返回的记录数，避免大表拖慢页面 |
-| `database.excerpt_length` | `60` | 列表摘要最大字符数，`0` 表示不截断 |
+| `database.history_table` | `template_history` | 历史数据表名，不含表前缀，框架自动拼接 |
 
-`table`、`id_field`、`cid_field`、`title_field`、`intro_field`、`path_field`、`content_field` 只允许英文、数字与下划线，避免配置拼接注入。
+
+模板字段固定为 `id`、`title`、`cid`、`intro`、`path`、`newstext`，不再提供字段名映射配置。`table`、`category_table`、`history_table` 只允许英文、数字与下划线，避免配置拼接注入。
+
+### session 主项目 Session
+
+| 配置项 | 默认值 | 说明 |
+| --- | --- | --- |
+| `session.admin_session_key` | 空字符串 | 从主项目 Session 读取操作人 id 的键，留空记 0 |
+| `session.site_session_key` | 空字符串 | 从主项目 Session 读取站点 id 的键，留空记 0 |
+
+模板、分类、历史三张表共用该配置写入 `admin_id` 与 `site_id`。
+
+### history 编辑历史
+
+| 配置项 | 默认值 | 说明 |
+| --- | --- | --- |
+| `history.enabled` | `true` | 是否记录模板编辑历史；关闭后历史接口返回 422 |
+| `history.limit` | `50` | 每个模板保留最近多少条，`0` 表示不裁剪 |
+| `history.record_on_create` | `true` | 新增模板时是否记录初始版本 |
+
+历史表名由 `database.history_table` 配置。历史写入与模板保存放在同一事务；还原时先把覆盖前的内容写入历史，再用历史快照更新模板内容。历史列表接口不返回 `newstext` 与 `newstext_hash`，详情接口按需返回。
 
 ### file 可编辑目录
 
@@ -350,24 +422,33 @@ CREATE TABLE `template_category` (
 
 ## PHP 调用
 
-服务注册后，可通过容器获取 `Templates` 与 `PathGuard`：
+服务注册后，可通过容器获取元数据类与数据仓储：
 
 ```php
 use Youvision\ThinkStoreCodeditor\Categories;
 use Youvision\ThinkStoreCodeditor\PathGuard;
+use Youvision\ThinkStoreCodeditor\StoreCodeditor;
 use Youvision\ThinkStoreCodeditor\Templates;
+
+/** @var StoreCodeditor $codeditor */
+$codeditor = app(StoreCodeditor::class);
+// 也可使用别名：app('store_codeditor')
+$base   = $codeditor->base();          // /store/think-store-codeditor
+$home   = $codeditor->index();         // /store/think-store-codeditor/index
+$assets = $codeditor->assets();        // /store/think-store-codeditor/assets
+$api    = $codeditor->apiTemplate();   // /store/think-store-codeditor/api/template
 
 /** @var Templates $templates */
 $templates = app(Templates::class);
-// 也可使用别名：app('codeditor.templates')
-
-/** @var PathGuard $guard */
-$guard = app(PathGuard::class);
-// 也可使用别名：app('codeditor.path_guard')
+// 也可使用别名：app('store_codeditor.templates')
 
 /** @var Categories $categories */
 $categories = app(Categories::class);
-// 也可使用别名：app('codeditor.categories')
+// 也可使用别名：app('store_codeditor.categories')
+
+/** @var PathGuard $guard */
+$guard = app(PathGuard::class);
+// 也可使用别名：app('store_codeditor.path_guard')
 
 $list = $templates->lists();
 $categories->lists();
@@ -376,6 +457,7 @@ $categories->lists();
 这些类都支持脱离容器使用：
 
 ```php
+$codeditor  = new StoreCodeditor((array) config('store_codeditor'), __DIR__);
 $templates  = new Templates((array) config('store_codeditor'));
 $categories = new Categories((array) config('store_codeditor'));
 $guard      = new PathGuard((array) config('store_codeditor.file'), app()->getRootPath());
@@ -392,6 +474,8 @@ think-store-codeditor/
 │  └─ store_codeditor.php        # 页面、接口与资源路由
 ├─ src/
 │  ├─ Service.php                # ThinkPHP 服务注册
+│  ├─ StoreCodeditor.php         # 包元数据与地址推导
+│  ├─ Operator.php               # Session 操作人与站点上下文
 │  ├─ CodeditorController.php     # 模板页面与读取、更新、新增接口
 │  ├─ CategoryController.php      # 分类页面与增改删接口
 │  ├─ AssetController.php         # 包内静态资源输出
@@ -400,15 +484,24 @@ think-store-codeditor/
 │  ├─ Categories.php             # 分类数据仓储
 │  ├─ Template.php               # 模板数据模型
 │  ├─ TemplateCategory.php       # 模板分类模型
+│  ├─ TemplateHistory.php        # 模板编辑历史模型
+│  ├─ TemplateHistories.php      # 历史快照仓储
+│  ├─ TemplateHistoryController.php # 历史列表、详情、还原接口
 │  └─ PathGuard.php              # 模板文件路径守卫
 ├─ theme/
 │  ├─ view/
-│  │  ├─ index.html              # 编辑器页面模板
+│  │  ├─ layout/
+│  │  │  ├─ head.html            # 公共 head 与样式引用
+│  │  │  ├─ header.html          # 公共页头与导航
+│  │  │  └─ footer.html          # 公共脚本与结束标签
+│  │  ├─ index.html              # 项目介绍页模板
+│  │  ├─ template.html           # 模板代码编辑器页面模板
 │  │  └─ category.html           # 分类管理页面模板
 │  └─ assets/
 │     ├─ css/index.css           # 页面自定义样式
 │     ├─ js/codeditor.js         # 编辑器页面脚本
 │     ├─ js/category.js          # 分类管理页面脚本
+│     ├─ js/history.js           # 编辑历史抽屉与还原脚本
 │     ├─ ace/                    # Ace Editor 本地资源
 │     └─ layui/                  # layui 本地资源
 ├─ tests/
@@ -444,10 +537,13 @@ php tests/verify.php
 
 验证脚本会检查：
 
-- `composer.json` 的包名、依赖、PSR-4 自动加载、服务注册与配置声明
-- `config/store_codeditor.php` 的默认配置项
+- `composer.json` 的包名、依赖、PSR-4 自动加载、服务注册、配置声明与 `extra.store.home`
+- `config/store_codeditor.php` 的默认配置项、`route.segment` 与顶层 `assets`
 - 路由文件、服务文件、控制器、渲染器与前端资源的关键实现
-- `theme/view` 模板变量、layui 数据表格与 assets 路由引用
+- `StoreCodeditor` 在默认、空前缀、空命名空间、自定义 segment 与绝对 assets 下的地址推导
+- `theme/view` 的 layout 复用、页面变量、layui 数据表格与 assets 路由引用
+- `session` 操作人配置与 `Operator` 上下文，模板、分类、历史三张表共用
+- 编辑历史的配置、历史模型与仓储、三个接口、保存事务、页面历史入口与还原脚本
 - `AssetController` 的资源解析、MIME 类型与目录穿越防护
 - `PathGuard` 的目录白名单、目录穿越拦截、扩展名限制、覆盖开关与文件写入
 - 全部 PHP 文件的语法
@@ -455,3 +551,6 @@ php tests/verify.php
 ## 许可证
 
 MIT，详见 `LICENSE`。
+## 相关项目
+
+ThinkPHP-PanGu 是一个面向 ThinkPHP 的开源工程索引，收录组件、框架、服务与发布工具：[https://github.com/indiboy-create/ThinkPHP-PanGu/](https://github.com/indiboy-create/ThinkPHP-PanGu/)。

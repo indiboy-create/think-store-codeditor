@@ -14,6 +14,7 @@ use Throwable;
 class CategoryController
 {
     public function __construct(
+        protected StoreCodeditor $codeditor,
         protected Categories $categories,
         protected View $view,
         protected App $app
@@ -26,10 +27,16 @@ class CategoryController
     public function index(): string
     {
         return $this->view->render('category', [
-            'api'       => $this->apiPrefix(),
-            'endpoints' => $this->endpoints(),
-            'editorUrl' => $this->ruleUrl('index', 'think-store-codeditor/index'),
-            'version'   => $this->version(),
+            'base'        => $this->codeditor->base(),
+            'home'        => $this->codeditor->index(),
+            'template'    => $this->codeditor->template(),
+            'category'    => $this->codeditor->category(),
+            'assets'      => $this->codeditor->assets(),
+            'categoryApi' => $this->codeditor->apiCategory(),
+            'version'     => $this->codeditor->version(),
+            'active'      => 'category',
+            'title'       => '模板分类管理',
+            'description' => '维护模板分类，支持新增、编辑、删除与排序。',
         ]);
     }
 
@@ -136,62 +143,6 @@ class CategoryController
         return $this->categories->payload($input);
     }
 
-    /**
-     * 路由前缀，留空时不添加前导斜杠。
-     */
-    protected function apiPrefix(): string
-    {
-        $prefix = trim((string) config('store_codeditor.route.prefix', 'store'), '/');
-
-        return $prefix === '' ? '' : '/' . $prefix;
-    }
-
-    /**
-     * 页面使用的接口地址，跟随 route.prefix 与 route.rules 自动变化。
-     *
-     * @return array{read: string, create: string, update: string, delete: string}
-     */
-    protected function endpoints(): array
-    {
-        return [
-            'read'   => $this->ruleUrl('category_read', 'think-store-codeditor/category/read'),
-            'create' => $this->ruleUrl('category_create', 'think-store-codeditor/category/create'),
-            'update' => $this->ruleUrl('category_update', 'think-store-codeditor/category/update'),
-            'delete' => $this->ruleUrl('category_delete', 'think-store-codeditor/category/delete'),
-        ];
-    }
-
-    protected function ruleUrl(string $rule, string $default): string
-    {
-        $path = trim((string) config('store_codeditor.route.rules.' . $rule, $default), '/');
-
-        return $this->apiPrefix() . '/' . $path;
-    }
-
-    protected function version(): string
-    {
-        if (class_exists(\Composer\InstalledVersions::class)) {
-            try {
-                $version = \Composer\InstalledVersions::getPrettyVersion('youvision/think-store-codeditor');
-
-                if (is_string($version) && $version !== '') {
-                    return $version;
-                }
-            } catch (Throwable) {
-            }
-        }
-
-        $file = dirname(__DIR__) . '/composer.json';
-
-        if (!is_file($file)) {
-            return 'dev';
-        }
-
-        $json    = json_decode((string) file_get_contents($file), true);
-        $version = is_array($json) ? (string) ($json['version'] ?? '') : '';
-
-        return $version !== '' ? $version : 'dev';
-    }
 
     protected function handle(callable $callback): Json
     {

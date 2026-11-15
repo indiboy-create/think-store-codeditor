@@ -12,28 +12,61 @@ class Service extends ThinkService
     {
         $this->mergeConfig();
 
-        $this->app->bind('codeditor.templates', function () {
-            return new Templates((array) $this->app->config->get('store_codeditor', []));
+        $this->app->bind('store_codeditor', function () {
+            return new StoreCodeditor(
+                (array) $this->app->config->get('store_codeditor', []),
+                dirname(__DIR__)
+            );
         });
 
-        $this->app->bind(Templates::class, 'codeditor.templates');
+        $this->app->bind(StoreCodeditor::class, 'store_codeditor');
 
-        $this->app->bind('codeditor.categories', function () {
-            return new Categories((array) $this->app->config->get('store_codeditor', []));
+        $this->app->bind('store_codeditor.operator', function () {
+            return new Operator((array) $this->app->config->get('store_codeditor', []));
         });
 
-        $this->app->bind(Categories::class, 'codeditor.categories');
+        $this->app->bind(Operator::class, 'store_codeditor.operator');
 
-        $this->app->bind('codeditor.path_guard', function () {
+        $this->app->bind('store_codeditor.templates', function () {
+            return new Templates(
+                (array) $this->app->config->get('store_codeditor', []),
+                $this->app->make(Operator::class)
+            );
+        });
+
+        $this->app->bind(Templates::class, 'store_codeditor.templates');
+
+        $this->app->bind('store_codeditor.categories', function () {
+            return new Categories(
+                (array) $this->app->config->get('store_codeditor', []),
+                $this->app->make(Operator::class)
+            );
+        });
+
+        $this->app->bind(Categories::class, 'store_codeditor.categories');
+
+        $this->app->bind('store_codeditor.histories', function () {
+            return new TemplateHistories(
+                (array) $this->app->config->get('store_codeditor', []),
+                $this->app->make(Operator::class)
+            );
+        });
+
+        $this->app->bind(TemplateHistories::class, 'store_codeditor.histories');
+
+        $this->app->bind('store_codeditor.path_guard', function () {
             return new PathGuard(
                 (array) $this->app->config->get('store_codeditor.file', []),
                 (string) $this->app->getRootPath()
             );
         });
 
-        $this->app->bind(PathGuard::class, 'codeditor.path_guard');
+        $this->app->bind(PathGuard::class, 'store_codeditor.path_guard');
 
-        $this->app->instance(View::class, new View($this->app));
+        $this->app->instance(View::class, new View(
+            $this->app,
+            (array) $this->app->config->get('store_codeditor', [])
+        ));
     }
 
     public function boot(): void

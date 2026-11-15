@@ -10,7 +10,7 @@ use think\view\driver\Think;
 /**
  * 包内视图渲染器。
  *
- * 模板固定使用 theme/view 目录，不依赖主项目的 view_path 配置；
+ * 模板目录由 view 配置指定，默认包内 theme/view；也可使用绝对路径。
  * think-view 的 fetch() 直接输出内容，因此用输出缓冲捕获并返回字符串。
  */
 class View
@@ -19,9 +19,9 @@ class View
 
     protected ?Think $driver = null;
 
-    public function __construct(protected App $app)
+    public function __construct(protected App $app, array $config = [])
     {
-        $this->path = dirname(__DIR__) . '/theme/view/';
+        $this->path = $this->resolvePath((string) ($config['view'] ?? 'view'));
     }
 
     /**
@@ -60,6 +60,24 @@ class View
         }
 
         return $file;
+    }
+
+    /**
+     * 解析视图目录：相对路径拼接包内 theme，绝对路径原样使用。
+     */
+    protected function resolvePath(string $view): string
+    {
+        $view = trim(str_replace('\\', '/', $view));
+
+        if ($view === '') {
+            $view = 'view';
+        }
+
+        if (str_starts_with($view, '/') || preg_match('#^[A-Za-z]:/#', $view)) {
+            return rtrim($view, '/') . '/';
+        }
+
+        return dirname(__DIR__) . '/theme/' . trim($view, '/') . '/';
     }
 
     protected function driver(): Think

@@ -1,0 +1,23 @@
+<body class="codeditor-page{if condition="$active == 'category'"} codeditor-admin{/if}{if condition="$active == 'intro'"} codeditor-intro{/if}">
+<div class="codeditor-shell">
+    <header class="codeditor-header">
+        <div class="codeditor-brand">
+            <span class="codeditor-brand__logo">TP</span>
+            <div class="codeditor-brand__text">
+                <h1>{$title}</h1>
+                <p>ThinkPHP 8 · 模板代码编辑器</p>
+            </div>
+        </div>
+        <div class="codeditor-actions">
+            <span class="codeditor-version">v{$version}</span>
+            <a class="layui-btn layui-btn-sm layui-btn-primary{if condition="$active == 'intro'"} layui-btn-normal{/if}" href="{$home}">
+                <i class="layui-icon layui-icon-home"></i> 介绍
+            </a>
+            <a class="layui-btn layui-btn-sm layui-btn-primary{if condition="$active == 'template'"} layui-btn-normal{/if}" href="{$template}">
+                <i class="layui-icon layui-icon-edit"></i> 模板编辑
+            </a>
+            <a class="layui-btn layui-btn-sm layui-btn-primary{if condition="$active == 'category'"} layui-btn-normal{/if}" href="{$category}">
+                <i class="layui-icon layui-icon-list"></i> 分类管理
+            </a>
+        </div>
+    </header>

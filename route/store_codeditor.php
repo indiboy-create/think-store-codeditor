@@ -6,68 +6,69 @@ use think\facade\Route;
 use Youvision\ThinkStoreCodeditor\AssetController;
 use Youvision\ThinkStoreCodeditor\CategoryController;
 use Youvision\ThinkStoreCodeditor\CodeditorController;
+use Youvision\ThinkStoreCodeditor\TemplateHistoryController;
 
-$settings   = (array) config('store_codeditor.route', []);
-$rules      = (array) ($settings['rules'] ?? []);
-$middleware = (array) ($settings['middleware'] ?? []);
-$prefix     = trim((string) ($settings['prefix'] ?? 'store'), '/');
-$assets     = trim((string) ($settings['assets'] ?? 'assets'), '/');
+/*
+ * 模板编辑器模块路由。
+ *
+ * 由 Youvision\ThinkStoreCodeditor\Service 在 boot 阶段加载，
+ * 宿主项目引入本包后无需再复制路由文件。
+ *
+ * 前缀、命名空间与中间件来自 config/store_codeditor.php：
+ * - store_codeditor.route.enabled    是否注册内置路由
+ * - store_codeditor.route.prefix     路由前缀，默认 store
+ * - store_codeditor.route.segment    包内命名空间，默认 think-store-codeditor
+ * - store_codeditor.route.middleware 应用到整组路由的中间件
+ */
+$prefix     = trim((string) config('store_codeditor.route.prefix', 'store'), '/');
+$segment    = trim((string) config('store_codeditor.route.segment', 'think-store-codeditor'), '/');
+$middleware = (array) config('store_codeditor.route.middleware', []);
 
-$index   = trim((string) ($rules['index'] ?? 'think-store-codeditor/index'), '/');
-$read    = trim((string) ($rules['read'] ?? 'think-store-codeditor/read'), '/');
-$update  = trim((string) ($rules['update'] ?? 'think-store-codeditor/update'), '/');
-$create  = trim((string) ($rules['create'] ?? 'think-store-codeditor/create'), '/');
+$register = static function () use ($segment): void {
+    $base = $segment === '' ? '' : $segment . '/';
 
-$category       = trim((string) ($rules['category'] ?? 'think-store-codeditor/category'), '/');
-$categoryRead   = trim((string) ($rules['category_read'] ?? 'think-store-codeditor/category/read'), '/');
-$categoryCreate = trim((string) ($rules['category_create'] ?? 'think-store-codeditor/category/create'), '/');
-$categoryUpdate = trim((string) ($rules['category_update'] ?? 'think-store-codeditor/category/update'), '/');
-$categoryDelete = trim((string) ($rules['category_delete'] ?? 'think-store-codeditor/category/delete'), '/');
+    Route::get($base . 'index', [CodeditorController::class, 'index'])->name('store_codeditor.index')->completeMatch();
+    Route::get($base . 'template', [CodeditorController::class, 'template'])->name('store_codeditor.template')->completeMatch();
+    Route::get($base . 'category', [CategoryController::class, 'index'])->name('store_codeditor.category')->completeMatch();
 
-$routes = [
-    $index,
-    $read,
-    $update,
-    $create,
-    $assets,
-    $category,
-    $categoryRead,
-    $categoryCreate,
-    $categoryUpdate,
-    $categoryDelete,
-];
+    // JSON 接口统一挂在 api 段下，与页面路由区分
+    Route::get($base . 'api/template/read', [CodeditorController::class, 'read'])
+        ->name('store_codeditor.template.read')
+        ->completeMatch();
+    Route::post($base . 'api/template/update', [CodeditorController::class, 'update'])
+        ->name('store_codeditor.template.update')
+        ->completeMatch();
+    Route::post($base . 'api/template/create', [CodeditorController::class, 'create'])
+        ->name('store_codeditor.template.create')
+        ->completeMatch();
 
-if (in_array('', $routes, true) || count(array_unique($routes)) !== count($routes)) {
-    return;
-}
+    Route::get($base . 'api/template/history', [TemplateHistoryController::class, 'lists'])
+        ->name('store_codeditor.template.history')
+        ->completeMatch();
+    Route::get($base . 'api/template/history/detail', [TemplateHistoryController::class, 'detail'])
+        ->name('store_codeditor.template.history.detail')
+        ->completeMatch();
+    Route::post($base . 'api/template/history/restore', [TemplateHistoryController::class, 'restore'])
+        ->name('store_codeditor.template.history.restore')
+        ->completeMatch();
 
-$register = static function () use (
-    $index,
-    $read,
-    $update,
-    $create,
-    $assets,
-    $category,
-    $categoryRead,
-    $categoryCreate,
-    $categoryUpdate,
-    $categoryDelete
-): void {
-    Route::get($index, CodeditorController::class . '@index')->name('codeditor.index')->completeMatch();
-    Route::get($read, CodeditorController::class . '@read')->name('codeditor.read')->completeMatch();
-    Route::post($update, CodeditorController::class . '@update')->name('codeditor.update')->completeMatch();
-    Route::post($create, CodeditorController::class . '@create')->name('codeditor.create')->completeMatch();
+    Route::get($base . 'api/category/read', [CategoryController::class, 'read'])
+        ->name('store_codeditor.category.read')
+        ->completeMatch();
+    Route::post($base . 'api/category/create', [CategoryController::class, 'create'])
+        ->name('store_codeditor.category.create')
+        ->completeMatch();
+    Route::post($base . 'api/category/update', [CategoryController::class, 'update'])
+        ->name('store_codeditor.category.update')
+        ->completeMatch();
+    Route::post($base . 'api/category/delete', [CategoryController::class, 'delete'])
+        ->name('store_codeditor.category.delete')
+        ->completeMatch();
 
-    Route::get($category, CategoryController::class . '@index')->name('codeditor.category.index')->completeMatch();
-    Route::get($categoryRead, CategoryController::class . '@read')->name('codeditor.category.read')->completeMatch();
-    Route::post($categoryCreate, CategoryController::class . '@create')->name('codeditor.category.create')->completeMatch();
-    Route::post($categoryUpdate, CategoryController::class . '@update')->name('codeditor.category.update')->completeMatch();
-    Route::post($categoryDelete, CategoryController::class . '@delete')->name('codeditor.category.delete')->completeMatch();
-
-    // 包内静态资源直接由路由输出，无需发布到宿主 public
-    Route::get($assets . '/<path>', [AssetController::class, 'file'])
+    // 静态资源直接由路由输出，无需发布到 public
+    Route::get($base . 'assets/<path>', [AssetController::class, 'file'])
         ->pattern(['path' => '.*'])
-        ->name('codeditor.asset');
+        ->name('store_codeditor.asset');
 };
 
 $group = Route::group($prefix, $register);

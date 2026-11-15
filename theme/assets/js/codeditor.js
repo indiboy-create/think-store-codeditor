@@ -2,11 +2,12 @@
     'use strict';
 
     var config = window.CODEDITOR_CONFIG || {};
-    var api = (config.api || '').replace(/\/+$/, '');
-    var readUrl = config.read || (api + '/think-store-codeditor/read');
-    var updateUrl = config.update || (api + '/think-store-codeditor/update');
-    var createUrl = config.create || (api + '/think-store-codeditor/create');
-    var aceBase = (api || '') + '/assets/ace';
+    var base = (config.api || '').replace(/\/+$/, '');
+    var assets = (config.assets || (base + '/assets')).replace(/\/+$/, '');
+    var readUrl = config.read || (base + '/api/template/read');
+    var updateUrl = config.update || (base + '/api/template/update');
+    var createUrl = config.create || (base + '/api/template/create');
+    var aceBase = assets + '/ace';
 
     var tableEl = document.getElementById('tpl-table');
     var countEl = document.getElementById('tpl-count');
@@ -16,6 +17,7 @@
     var statusMeta = document.getElementById('status-meta');
     var charCount = document.getElementById('char-count');
     var dirtyDot = document.getElementById('dirty-dot');
+    var historyBtn = document.getElementById('btn-history');
 
     var state = {
         items: [],
@@ -51,6 +53,19 @@
 
             event.preventDefault();
             event.returnValue = '';
+        });
+
+        window.addEventListener('codeditor:history-restored', function (event) {
+            var detail = event.detail || {};
+
+            if (state.currentId !== detail.templateId) {
+                return;
+            }
+
+            setEditorValue(detail.content || '');
+            markDirty(false);
+            setStatus('已还原到历史版本');
+            loadList();
         });
 
         window.addEventListener('resize', function () {
@@ -99,7 +114,7 @@
             name: 'saveTemplate',
             bindKey: { win: 'Ctrl-S', mac: 'Command-S' },
             exec: function () {
-                saveTemplate();
+                saveTemplate('');
             }
         });
 
@@ -108,8 +123,9 @@
 
     function bindEvents() {
         document.getElementById('btn-refresh').addEventListener('click', loadList);
-        document.getElementById('btn-save').addEventListener('click', saveTemplate);
+        document.getElementById('btn-save').addEventListener('click', promptSave);
         document.getElementById('btn-create').addEventListener('click', openCreate);
+        historyBtn.addEventListener('click', openHistory);
         searchEl.addEventListener('input', renderTable);
 
         table.on('row(tpl-table)', function (obj) {
@@ -165,7 +181,8 @@
 
         return state.items.filter(function (item) {
             return String(item.id).indexOf(keyword) !== -1
-                || String(item.excerpt || '').toLowerCase().indexOf(keyword) !== -1;
+                || String(item.title || '').toLowerCase().indexOf(keyword) !== -1
+                || String(item.cid || '').indexOf(keyword) !== -1;
         });
     }
 
@@ -196,19 +213,18 @@
                         }
                     },
                     {
-                        field: 'excerpt',
-                        title: '摘要',
-                        minWidth: 220,
+                        field: 'title',
+                        title: '标题',
+                        minWidth: 200,
                         templet: function (item) {
-                            return '<span class="codeditor-row-text">' + escapeHtml(item.excerpt || '（空白模板）') + '</span>';
+                            return '<span class="codeditor-row-text">' + escapeHtml(item.title || '未命名模板') + '</span>';
                         }
                     },
                     {
-                        field: 'length',
-                        title: '字符',
+                        field: 'cid',
+                        title: '分类',
                         width: 80,
-                        sort: true,
-                        align: 'right'
+                        align: 'center'
                     }
                 ]],
                 done: highlightRow
@@ -254,7 +270,8 @@
 
             var data = result.data || {};
             state.currentId = data.id;
-            currentTitle.textContent = '模板 #' + data.id;
+            currentTitle.textContent = data.title ? (data.title + ' · #' + data.id) : ('模板 #' + data.id);
+            historyBtn.disabled = false;
             setEditorValue(data.content || '');
             highlightRow();
             setStatus('模板 #' + data.id + ' 已加载');
@@ -268,7 +285,22 @@
         });
     }
 
-    function saveTemplate() {
+    function promptSave() {
+        if (state.currentId === null) {
+            layer.msg('请先选择左侧模板', { icon: 0 });
+            return;
+        }
+
+        layer.prompt({
+            title: '修改说明（可选）',
+            formType: 0
+        }, function (value, index) {
+            layer.close(index);
+            saveTemplate(value || '');
+        });
+    }
+
+    function saveTemplate(intro) {
         if (state.currentId === null) {
             layer.msg('请先选择左侧模板', { icon: 0 });
             return;
@@ -285,7 +317,8 @@
             method: 'POST',
             body: JSON.stringify({
                 id: state.currentId,
-                content: editor ? editor.getValue() : ''
+                content: editor ? editor.getValue() : '',
+                intro: intro || ''
             })
         }).then(function (result) {
             if (result.code !== 0) {
@@ -294,7 +327,7 @@
 
             markDirty(false);
             setStatus('模板 #' + state.currentId + ' 已保存');
-            layer.msg('保存成功', { icon: 1, time: 1200 });
+            layer.msg(result.data && result.data.changed === false ? '内容未变化' : '保存成功', { icon: 1, time: 1200 });
             loadList();
         }).catch(function (error) {
             setStatus(error.message);
@@ -325,6 +358,7 @@
                 }
 
                 var content = layero.find('textarea[name="content"]').val();
+                var intro = (layero.find('input[name="intro"]').val() || '').trim();
                 var file = (layero.find('input[name="file"]').val() || '').trim();
 
                 state.creating = true;
@@ -332,7 +366,7 @@
 
                 request(createUrl, {
                     method: 'POST',
-                    body: JSON.stringify({ content: content, file: file })
+                    body: JSON.stringify({ content: content, file: file, intro: intro })
                 }).then(function (result) {
                     if (result.code !== 0) {
                         throw new Error(result.msg || '新增模板失败');
@@ -357,6 +391,23 @@
                     state.creating = false;
                 });
             }
+        });
+    }
+
+    function openHistory() {
+        if (state.currentId === null) {
+            layer.msg('请先选择左侧模板', { icon: 0 });
+            return;
+        }
+
+        if (!window.CODEDITOR_HISTORY) {
+            layer.msg('历史模块加载失败', { icon: 2 });
+            return;
+        }
+
+        window.CODEDITOR_HISTORY.open({
+            id: state.currentId,
+            title: currentTitle.textContent
         });
     }
 

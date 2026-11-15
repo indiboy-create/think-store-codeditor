@@ -9,7 +9,8 @@ use InvalidArgumentException;
 /**
  * 模板数据仓储。
  *
- * 统一封装 template 表的读取、更新、新增与删除，字段名全部来自配置。
+ * 模板字段固定为 id、title、cid、intro、path、newstext，
+ * 只允许配置表名与列表行为。
  */
 class Templates
 {
@@ -17,26 +18,15 @@ class Templates
 
     protected string $categoryTable;
 
-    protected string $idField;
+    protected Operator $operator;
 
-    protected string $contentField;
-
-
-    protected int $listLimit;
-
-    protected int $excerptLength;
-
-    public function __construct(array $config = [])
+    public function __construct(array $config = [], ?Operator $operator = null)
     {
         $database = (array) ($config['database'] ?? []);
 
+        $this->operator      = $operator ?? new Operator($config);
         $this->table         = $this->identifier((string) ($database['table'] ?? 'template'), 'database.table');
         $this->categoryTable = $this->identifier((string) ($database['category_table'] ?? 'template_category'), 'database.category_table');
-        $this->idField       = $this->identifier((string) ($database['id_field'] ?? 'id'), 'database.id_field');
-        $this->contentField  = $this->identifier((string) ($database['content_field'] ?? 'newstext'), 'database.content_field');
-
-        $this->listLimit     = max(1, (int) ($database['list_limit'] ?? 200));
-        $this->excerptLength = max(0, (int) ($database['excerpt_length'] ?? 60));
     }
 
     /**
@@ -44,7 +34,7 @@ class Templates
      */
     public function model(): Template
     {
-        return new Template([], $this->table, $this->idField);
+        return new Template([], $this->table);
     }
 
     /**
@@ -65,43 +55,42 @@ class Templates
     /**
      * 读取单条模板。
      *
-     * @return array{id:int, content:string}|null
+     * @return array{id:int, title:string, content:string}|null
      */
     public function find(int $id): ?array
     {
-        $row = $this->model()->where($this->idField, $id)->find();
+        $row = $this->model()->where('id', $id)->find();
 
         if (!$row) {
             return null;
         }
 
         return [
-            'id'      => (int) $row->getAttr($this->idField),
-            'content' => (string) $row->getAttr($this->contentField),
+            'id'      => (int) $row->getAttr('id'),
+            'title'   => (string) $row->getAttr('title'),
+            'content' => (string) $row->getAttr('newstext'),
         ];
     }
 
     /**
-     * 读取模板列表。
+     * 读取模板列表，仅返回 id、title、cid，不读取 newstext。
      *
-     * @return array{total:int, items:array<int, array{id:int, excerpt:string, length:int}>}
+     * @return array{total:int, items:array<int, array{id:int, title:string, cid:int}>}
      */
     public function lists(): array
     {
         $rows = $this->model()
-            ->field([$this->idField, $this->contentField])
-            ->order($this->idField, 'desc')
-            ->limit($this->listLimit)
+            ->field(['id', 'title', 'cid'])
+            ->order('id', 'desc')
             ->select();
 
         $items = [];
 
         foreach ($rows as $row) {
-            $content = (string) $row->getAttr($this->contentField);
             $items[] = [
-                'id'      => (int) $row->getAttr($this->idField),
-                'excerpt' => $this->excerpt($content),
-                'length'  => $this->length($content),
+                'id'    => (int) $row->getAttr('id'),
+                'title' => (string) $row->getAttr('title'),
+                'cid'   => (int) $row->getAttr('cid'),
             ];
         }
 
@@ -116,13 +105,24 @@ class Templates
      */
     public function update(int $id, string $content): bool
     {
-        $row = $this->model()->where($this->idField, $id)->find();
+        $row = $this->model()->where('id', $id)->find();
 
         if (!$row) {
             return false;
         }
 
-        $row->setAttr($this->contentField, $content);
+        $row->setAttr('newstext', $content);
+
+        $adminId = $this->operator->adminId();
+        $siteId  = $this->operator->siteId();
+
+        if ($adminId > 0) {
+            $row->setAttr('admin_id', $adminId);
+        }
+
+        if ($siteId > 0) {
+            $row->setAttr('site_id', $siteId);
+        }
 
         return (bool) $row->save();
     }
@@ -133,7 +133,18 @@ class Templates
     public function create(string $content): int
     {
         $model = $this->model();
-        $model->setAttr($this->contentField, $content);
+        $model->setAttr('newstext', $content);
+
+        $adminId = $this->operator->adminId();
+        $siteId  = $this->operator->siteId();
+
+        if ($adminId > 0) {
+            $model->setAttr('admin_id', $adminId);
+        }
+
+        if ($siteId > 0) {
+            $model->setAttr('site_id', $siteId);
+        }
 
         if (!$model->save()) {
             throw new \RuntimeException('模板记录写入失败');
@@ -147,7 +158,7 @@ class Templates
      */
     public function delete(int $id): void
     {
-        $row = $this->model()->where($this->idField, $id)->find();
+        $row = $this->model()->where('id', $id)->find();
 
         if ($row) {
             $row->delete();
@@ -155,39 +166,15 @@ class Templates
     }
 
     /**
-     * 生成列表摘要：去除标签、压缩空白并按配置截断。
-     */
-    protected function excerpt(string $content): string
-    {
-        $text = preg_replace('/\s+/u', ' ', strip_tags($content)) ?? '';
-        $text = trim($text);
 
-        if ($this->excerptLength > 0 && $this->length($text) > $this->excerptLength) {
-            $text = $this->substr($text, 0, $this->excerptLength) . '…';
-        }
-
-        return $text;
-    }
-
-    protected function length(string $text): int
-    {
-        return function_exists('mb_strlen') ? mb_strlen($text) : strlen($text);
-    }
-
-    protected function substr(string $text, int $start, int $length): string
-    {
-        return function_exists('mb_substr') ? mb_substr($text, $start, $length) : substr($text, $start, $length);
-    }
-
-    /**
-     * 校验表名、字段名只允许英文、数字与下划线，避免配置拼接注入。
+     * 校验表名只允许英文、数字与下划线，避免配置拼接注入。
      */
     protected function identifier(string $value, string $name): string
     {
         $value = trim($value);
 
         if (!preg_match('/^[A-Za-z_][A-Za-z0-9_]*$/', $value)) {
-            throw new InvalidArgumentException('codeditor.' . $name . ' 不是合法的表名或字段名：' . $value);
+            throw new InvalidArgumentException('codeditor.' . $name . ' 不是合法的表名：' . $value);
         }
 
         return $value;
