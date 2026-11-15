@@ -1,22 +1,32 @@
 {include file="layout/head" /}
 {include file="layout/header" /}
 
-<main class="codeditor-admin__body">
-    <div class="codeditor-container codeditor-admin__inner">
-        <div class="codeditor-admin__lead">
-            <div>
-                <span class="codeditor-eyebrow">Category</span>
-                <h2>模板分类管理</h2>
-                <p>维护模板分类，支持新增、编辑、删除与排序；操作人与站点由主项目 Session 统一写入。</p>
+<section class="codeditor-page-head">
+    <div class="codeditor-container codeditor-page-head__inner">
+        <div>
+            <div class="codeditor-breadcrumb">
+                <a href="{$home}">项目介绍</a>
+                <i class="layui-icon layui-icon-right"></i>
+                <span>分类管理</span>
             </div>
-            <a class="codeditor-btn codeditor-btn--outline" href="{$template}">
+            <h1 class="codeditor-page-title">模板分类管理</h1>
+            <p class="codeditor-page-desc">维护模板分类，支持新增、编辑、删除与排序；操作人与站点由主项目 Session 统一写入。</p>
+        </div>
+        <div class="codeditor-page-head__actions">
+            <span class="codeditor-badge"><i class="layui-icon layui-icon-list"></i> template_category</span>
+            <a class="codeditor-btn codeditor-btn--outline codeditor-btn--sm" href="{$template}">
                 <i class="layui-icon layui-icon-edit"></i> 返回模板编辑器
             </a>
         </div>
+    </div>
+</section>
 
+<main class="codeditor-admin__body">
+    <div class="codeditor-container">
         <div class="codeditor-admin__card">
             <div class="codeditor-admin__toolbar">
                 <div class="codeditor-admin__search">
+                    <i class="layui-icon layui-icon-search"></i>
                     <input type="text" id="category-search" class="layui-input" placeholder="按 ID、标题或名称筛选">
                 </div>
                 <div class="codeditor-admin__actions">

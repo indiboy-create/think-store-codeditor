@@ -1,4 +1,4 @@
-<body class="codeditor-page{if condition="$active == 'category'"} codeditor-admin{/if}{if condition="$active == 'intro'"} codeditor-intro{/if}">
+<body class="codeditor-page codeditor-{$active}{if condition="$active == 'category'"} codeditor-admin{/if}">
 <div class="codeditor-shell">
     <header class="codeditor-header">
         <div class="codeditor-container codeditor-header__inner">
@@ -7,11 +7,16 @@
                 <span class="codeditor-brand__name">Codeditor<small>THINK STORE CODEDITOR</small></span>
             </a>
             <nav class="codeditor-nav" id="codeditor-nav">
-                <a class="{if condition="$active == 'intro'"}is-active{/if}" href="{$home}">介绍</a>
+                <a class="{if condition="$active == 'intro'"}is-active{/if}" href="{$home}">项目介绍</a>
                 <a class="{if condition="$active == 'template'"}is-active{/if}" href="{$template}">模板编辑</a>
                 <a class="{if condition="$active == 'category'"}is-active{/if}" href="{$category}">分类管理</a>
             </nav>
-            <span class="codeditor-source"><i class="layui-icon layui-icon-engine"></i> v{$version}</span>
+            <div class="codeditor-header__actions">
+                <a class="codeditor-github" href="https://github.com/indiboy-create/think-store-codeditor" target="_blank" rel="noopener">
+                    <i class="layui-icon layui-icon-log"></i><span>GitHub</span>
+                </a>
+                <span class="codeditor-version">v{$version}</span>
+            </div>
             <button type="button" class="codeditor-nav-toggle" id="codeditor-nav-toggle" aria-label="打开导航" aria-expanded="false" aria-controls="codeditor-nav">
                 <i class="layui-icon layui-icon-spread-left"></i>
             </button>

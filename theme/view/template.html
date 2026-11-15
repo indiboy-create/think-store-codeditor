@@ -1,6 +1,26 @@
 {include file="layout/head" /}
 {include file="layout/header" /}
 
+<section class="codeditor-page-head">
+    <div class="codeditor-container codeditor-page-head__inner">
+        <div>
+            <div class="codeditor-breadcrumb">
+                <a href="{$home}">项目介绍</a>
+                <i class="layui-icon layui-icon-right"></i>
+                <span>模板编辑</span>
+            </div>
+            <h1 class="codeditor-page-title">模板代码编辑器</h1>
+            <p class="codeditor-page-desc">左侧选择模板，右侧编辑 HTML + PHP 内容；保存时写入快照，历史面板可查看与还原。</p>
+        </div>
+        <div class="codeditor-page-head__actions">
+            <span class="codeditor-badge"><i class="layui-icon layui-icon-console"></i> ace/mode/php</span>
+            <a class="codeditor-btn codeditor-btn--outline codeditor-btn--sm" href="{$category}">
+                <i class="layui-icon layui-icon-list"></i> 分类管理
+            </a>
+        </div>
+    </div>
+</section>
+
 <div class="codeditor-body">
     <aside class="codeditor-sidebar">
         <div class="codeditor-sidebar__head">

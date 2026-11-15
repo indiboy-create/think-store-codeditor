@@ -1,14 +1,14 @@
-{if condition="$active == 'intro'"}
+{if condition="$active != 'template'"}
 <footer class="codeditor-footer">
     <div class="codeditor-container">
         <div class="codeditor-footer__grid">
-            <div class="codeditor-footer__brand-col">
+            <div>
                 <a class="codeditor-brand codeditor-footer__brand" href="{$home}">
                     <span class="codeditor-brand__mark"><i class="layui-icon layui-icon-console"></i></span>
                     <span class="codeditor-brand__name">Codeditor<small>THINK STORE CODEDITOR</small></span>
                 </a>
                 <p class="codeditor-footer__desc">
-                    youvision/think-store-codeditor：面向 ThinkPHP 8 的模板代码编辑器，可作为 think-store 发布包接入商店，提供包内视图、模板编辑、分类管理与编辑历史。
+                    youvision/think-store-codeditor：面向 ThinkPHP 8 的模板代码编辑器，包内提供视图、静态资源、模板编辑、分类管理与编辑历史。
                 </p>
             </div>
             <div>
@@ -39,7 +39,7 @@
         </div>
         <div class="codeditor-footer__bottom">
             <span>© 2026 youvision/think-store-codeditor · v{$version}</span>
-            <span>Built with ThinkPHP 8 · Layui</span>
+            <span>Built with ThinkPHP 8 · Layui · Ace</span>
         </div>
     </div>
 </footer>
