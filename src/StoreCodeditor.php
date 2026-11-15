@@ -60,6 +60,30 @@ class StoreCodeditor
     }
 
     /**
+     * 内嵌页面示例地址，例如 /store/think-store-codeditor/iframe。
+     */
+    public function iframe(): string
+    {
+        return $this->base() . '/iframe';
+    }
+
+    /**
+     * iframe 模板简易管理地址，例如 /store/think-store-codeditor/iframe/template。
+     */
+    public function iframeTemplate(): string
+    {
+        return $this->iframe() . '/template';
+    }
+
+    /**
+     * iframe 分类简易管理地址，例如 /store/think-store-codeditor/iframe/category。
+     */
+    public function iframeCategory(): string
+    {
+        return $this->iframe() . '/category';
+    }
+
+    /**
      * 包内静态资源地址，例如 /store/think-store-codeditor/assets。
      *
      * assets 为相对路径时拼在包内命名空间后；以 / 开头时视为外部托管的绝对地址。
@@ -134,6 +158,9 @@ class StoreCodeditor
             ['method' => 'GET', 'path' => $this->index(), 'name' => '项目介绍', 'type' => '页面'],
             ['method' => 'GET', 'path' => $this->template(), 'name' => '模板编辑器', 'type' => '页面'],
             ['method' => 'GET', 'path' => $this->category(), 'name' => '分类管理', 'type' => '页面'],
+            ['method' => 'GET', 'path' => $this->iframe(), 'name' => '内嵌页面示例', 'type' => '页面'],
+            ['method' => 'GET', 'path' => $this->iframeTemplate(), 'name' => '模板简易管理', 'type' => '页面'],
+            ['method' => 'GET', 'path' => $this->iframeCategory(), 'name' => '分类简易管理', 'type' => '页面'],
             ['method' => 'GET', 'path' => $this->apiTemplate('read'), 'name' => '读取模板', 'type' => '接口'],
             ['method' => 'POST', 'path' => $this->apiTemplate('update'), 'name' => '更新模板', 'type' => '接口'],
             ['method' => 'POST', 'path' => $this->apiTemplate('create'), 'name' => '新增模板', 'type' => '接口'],

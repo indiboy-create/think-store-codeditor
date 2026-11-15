@@ -34,6 +34,7 @@ class CodeditorController
             'home'        => $this->codeditor->index(),
             'template'    => $this->codeditor->template(),
             'category'    => $this->codeditor->category(),
+            'iframe'      => $this->codeditor->iframe(),
             'assets'      => $this->codeditor->assets(),
             'templateApi' => $this->codeditor->apiTemplate(),
             'categoryApi' => $this->codeditor->apiCategory(),
@@ -56,6 +57,7 @@ class CodeditorController
             'home'           => $this->codeditor->index(),
             'template'       => $this->codeditor->template(),
             'category'       => $this->codeditor->category(),
+            'iframe'         => $this->codeditor->iframe(),
             'assets'         => $this->codeditor->assets(),
             'templateApi' => $this->codeditor->apiTemplate(),
             'historyApi'     => $this->codeditor->apiTemplate('history'),
@@ -65,6 +67,46 @@ class CodeditorController
             'active'         => 'template',
             'title'          => '模板代码编辑器',
             'description'    => '在浏览器中编辑 ThinkPHP 模板，支持 HTML 与 PHP 混合高亮、保存、新增与历史还原。',
+        ]);
+    }
+
+    /**
+     * 渲染内嵌页面示例：列出可内嵌页面并在当前页预览。
+     */
+    public function iframeIndex(): string
+    {
+        $pages = [
+            [
+                'name'        => '模板简易管理',
+                'path'        => $this->codeditor->iframeTemplate(),
+                'description' => '模板列表、搜索、分类筛选与内容编辑，不提供删除入口。',
+            ],
+            [
+                'name'        => '分类简易管理',
+                'path'        => $this->codeditor->iframeCategory(),
+                'description' => '分类树形表格，支持搜索、新增、编辑与删除。',
+            ],
+        ];
+
+        return $this->view->render('iframe', [
+            'base'            => $this->codeditor->base(),
+            'home'            => $this->codeditor->index(),
+            'template'        => $this->codeditor->template(),
+            'category'        => $this->codeditor->category(),
+            'iframe'          => $this->codeditor->iframe(),
+            'assets'          => $this->codeditor->assets(),
+            'templateApi'     => $this->codeditor->apiTemplate(),
+            'categoryApi'     => $this->codeditor->apiCategory(),
+            'iframePages'     => $pages,
+            'iframePagesJson' => (string) json_encode(
+                $pages,
+                JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
+            ),
+            'iframeDefault'   => $pages[0]['path'],
+            'version'         => $this->codeditor->version(),
+            'active'          => 'iframe',
+            'title'           => '内嵌页面示例',
+            'description'     => '内嵌页面示例：模板简易管理与分类简易管理，可直接通过 iframe 嵌入后台框架。',
         ]);
     }
 

@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{$title} · Think Store Codeditor</title>
+<meta name="description" content="{$description}">
+<meta name="theme-color" content="#0b2424">
+<link rel="stylesheet" href="{$assets}/layui/css/layui.css">
+<link rel="stylesheet" href="{$assets}/css/index.css">
+</head>
+<body class="codeditor-page codeditor-intro codeditor-iframe-demo">
+<div class="codeditor-shell">
+    <header class="codeditor-header">
+        <div class="layui-container codeditor-header__inner">
+            <a class="codeditor-brand" href="{$home}">
+                <span class="codeditor-brand__mark"><i class="layui-icon layui-icon-console"></i></span>
+                <span class="codeditor-brand__name">Codeditor<small>THINK STORE CODEDITOR</small></span>
+            </a>
+            <ul class="layui-nav codeditor-nav" id="codeditor-nav" lay-filter="codeditor-nav">
+                <li class="layui-nav-item"><a href="{$home}">项目介绍</a></li>
+                <li class="layui-nav-item"><a href="{$template}">模板编辑</a></li>
+                <li class="layui-nav-item"><a href="{$category}">分类管理</a></li>
+                <li class="layui-nav-item layui-this"><a href="{$iframe}">内嵌示例</a></li>
+            </ul>
+            <div class="codeditor-header__actions">
+                <a class="codeditor-github" href="https://github.com/indiboy-create/think-store-codeditor" target="_blank" rel="noopener">
+                    <i class="layui-icon layui-icon-log"></i><span>GitHub</span>
+                </a>
+
+            </div>
+            <button type="button" class="codeditor-nav-toggle" id="codeditor-nav-toggle" aria-label="打开导航" aria-expanded="false" aria-controls="codeditor-nav">
+                <i class="layui-icon layui-icon-spread-left"></i>
+            </button>
+        </div>
+    </header>
+
+<section class="codeditor-hero codeditor-hero--compact">
+    <div class="codeditor-container">
+        <span class="codeditor-eyebrow">iframe · 2 个页面</span>
+        <h1 class="codeditor-hero__compact-title"><em>内嵌页面</em>示例</h1>
+        <p class="codeditor-hero__compact-desc">以下页面只输出内容区，不包含站点导航与页脚，适合通过 iframe 嵌入其他系统；页面清单由控制器维护，列表与预览复用现有 JSON 接口。</p>
+        <p class="codeditor-hero__compact-actions">
+            <a class="codeditor-btn codeditor-btn--primary" href="{$iframeDefault}" target="_blank" rel="noopener">
+                <i class="layui-icon layui-icon-layouts"></i> 新窗口打开模板管理
+            </a>
+            <a class="codeditor-btn codeditor-btn--ghost" href="{$home}">查看项目介绍</a>
+        </p>
+    </div>
+</section>
+
+<main class="codeditor-intro-body">
+    <div class="codeditor-container codeditor-content">
+        <section class="codeditor-section">
+            <div class="codeditor-section__head">
+                <div>
+                    <span class="codeditor-eyebrow">Pages</span>
+                    <h2 class="codeditor-section__title">可内嵌页面列表</h2>
+                    <p class="codeditor-section__desc">点击「预览」在当前页面加载对应 iframe，或在新窗口单独打开。</p>
+                </div>
+                <span class="codeditor-section__tip">2 个页面 · 可直接嵌入后台框架</span>
+            </div>
+
+            <div class="codeditor-table-card layui-card">
+                <div class="layui-card-header">
+                    <span>内嵌页面</span>
+                    <span class="codeditor-table-count" id="codeditor-iframe-count">--</span>
+                </div>
+                <div class="layui-card-body codeditor-table-wrap">
+                    <table class="layui-hide" id="codeditor-iframe-table" lay-filter="codeditor-iframe-table"></table>
+                </div>
+            </div>
+        </section>
+
+        <section class="codeditor-section">
+            <div class="codeditor-section__head">
+                <div>
+                    <span class="codeditor-eyebrow">Preview</span>
+                    <h2 class="codeditor-section__title">iframe 预览</h2>
+                    <p class="codeditor-section__desc">预览区宽度跟随容器变化，验证内嵌页面在窄屏下的表现。</p>
+                </div>
+            </div>
+
+            <div class="codeditor-iframe__preview">
+                <div class="codeditor-iframe__preview-head">
+                    <span>当前页面：<code id="codeditor-iframe-current">{$iframeDefault}</code></span>
+                    <a class="codeditor-iframe__open" id="codeditor-iframe-open" href="{$iframeDefault}" target="_blank" rel="noopener">新窗口打开</a>
+                </div>
+                <iframe class="codeditor-iframe__frame" id="codeditor-iframe-preview" src="{$iframeDefault}" title="内嵌页面预览" loading="lazy"></iframe>
+            </div>
+
+            <p class="codeditor-iframe__note">若宿主站点设置了 X-Frame-Options 或 CSP 限制，预览区可能显示空白，此时可直接在新窗口打开。</p>
+        </section>
+
+        <section class="codeditor-section">
+            <div class="codeditor-cta">
+                <div class="codeditor-cta__text">
+                    <span class="codeditor-eyebrow">Embed</span>
+                    <h2>把管理页嵌进现有后台</h2>
+                    <p>两个页面都不含本站导航与页脚，只保留内容区，可直接作为 layuiAdmin 等框架的子页面。</p>
+                    <pre class="codeditor-cta__code"><code>&lt;iframe src="{$iframeDefault}"&gt;&lt;/iframe&gt;</code></pre>
+                </div>
+                <div class="codeditor-cta__actions">
+                    <a class="codeditor-btn codeditor-btn--primary" href="{$iframeDefault}" target="_blank" rel="noopener">
+                        <i class="layui-icon layui-icon-layouts"></i> 打开模板管理
+                    </a>
+                    <a class="codeditor-btn codeditor-btn--ghost" href="{$template}">
+                        <i class="layui-icon layui-icon-edit"></i> 完整编辑器
+                    </a>
+                </div>
+            </div>
+        </section>
+    </div>
+</main>
+
+<footer class="codeditor-footer">
+    <div class="codeditor-container">
+        <div class="codeditor-footer__grid">
+            <div>
+                <a class="codeditor-brand codeditor-footer__brand" href="{$home}">
+                    <span class="codeditor-brand__mark"><i class="layui-icon layui-icon-console"></i></span>
+                    <span class="codeditor-brand__name">Codeditor<small>THINK STORE CODEDITOR</small></span>
+                </a>
+                <p class="codeditor-footer__desc">
+                    youvision/think-store-codeditor：面向 ThinkPHP 8 的模板代码编辑器，包内提供视图、静态资源、模板编辑、分类管理与编辑历史。
+                </p>
+            </div>
+            <div>
+                <h4>页面</h4>
+                <div class="codeditor-footer__links">
+                    <a href="{$home}">项目介绍</a>
+                    <a href="{$template}">模板编辑</a>
+                    <a href="{$category}">分类管理</a>
+                    <a href="{$iframe}">内嵌示例</a>
+                </div>
+            </div>
+            <div>
+                <h4>接口</h4>
+                <div class="codeditor-footer__links">
+                    <a href="{$templateApi}/read">读取模板</a>
+                    <a href="{$categoryApi}/read">读取分类</a>
+                    <a href="{$templateApi}/history">编辑历史</a>
+                </div>
+            </div>
+            <div>
+                <h4>资源</h4>
+                <div class="codeditor-footer__links">
+                    <a href="https://github.com/indiboy-create/think-store-codeditor" target="_blank" rel="noopener">GitHub 仓库</a>
+                    <a href="https://github.com/indiboy-create/think-store-codeditor#readme" target="_blank" rel="noopener">使用文档</a>
+                    <a href="https://layui.dev/" target="_blank" rel="noopener">Layui 文档</a>
+                    <a href="https://www.thinkphp.cn/" target="_blank" rel="noopener">ThinkPHP 官网</a>
+                </div>
+            </div>
+        </div>
+        <div class="codeditor-footer__bottom">
+            <span>© 2026 youvision/think-store-codeditor</span>
+            <span>Built with ThinkPHP 8 · Layui · Ace</span>
+        </div>
+    </div>
+</footer>
+</div>
+<script type="application/json" id="codeditor-iframe-pages">{$iframePagesJson|raw}</script>
+<script src="{$assets}/layui/layui.js"></script>
+<script src="{$assets}/js/common.js"></script>
+<script src="{$assets}/js/iframe.js"></script>
+</body>
+</html>

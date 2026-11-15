@@ -32,6 +32,9 @@ $register = static function () use ($segment): void {
     Route::get($base . 'category', [CategoryController::class, 'index'])->name('store_codeditor.category')->completeMatch();
 
     // iframe 版简易管理页，复用现有 JSON 接口
+    Route::get($base . 'iframe', [CodeditorController::class, 'iframeIndex'])
+        ->name('store_codeditor.iframe')
+        ->completeMatch();
     Route::get($base . 'iframe/template', [CodeditorController::class, 'iframe'])
         ->name('store_codeditor.iframe.template')
         ->completeMatch();

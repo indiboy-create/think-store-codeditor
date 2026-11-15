@@ -37,6 +37,7 @@ php think vendor:publish
 | GET | `/store/think-store-codeditor/index` | 渲染项目介绍页面 |
 | GET | `/store/think-store-codeditor/template` | 渲染模板代码编辑器页面 |
 | GET | `/store/think-store-codeditor/category` | 渲染模板分类管理页面 |
+| GET | `/store/think-store-codeditor/iframe` | 渲染内嵌页面示例，列出可内嵌页面并提供 iframe 预览 |
 | GET | `/store/think-store-codeditor/iframe/template` | 渲染 iframe 版模板列表页，支持查看、新增与内容编辑 |
 | GET | `/store/think-store-codeditor/iframe/category` | 渲染 iframe 版分类管理页，树形表格与增改删 |
 
@@ -57,8 +58,9 @@ php think vendor:publish
 ## 页面与静态资源
 
 - 模板默认位于包内 `theme/view`，由包内 `View` 渲染器通过 think-view 的 `Think` 驱动渲染，不依赖主项目的 `view_path`，也不需要复制到主项目；可通过 `view` 配置改为主项目模板目录。
-- 介绍页、编辑器页与分类页各自是完整的 HTML 文档，公共页头、页脚与脚本按页面需要内联，不依赖 layout 目录，便于单页复制与改版；编辑器页不输出页脚以保留全屏编辑区。
+- 介绍页、编辑器页、分类页与内嵌示例页各自是完整的 HTML 文档，采用 layui 导航与统一页脚，导航折叠脚本位于 `theme/assets/js/common.js`；编辑器页不输出页脚以保留全屏编辑区。
 - iframe 版页面位于 `theme/view/iframe`，采用 layuiAdmin 官方原版结构（`layadmin-header` + `layui-fluid` + `layui-card`）；iframe 专用样式位于 `theme/assets/iframe/css`，脚本位于 `theme/assets/iframe/js`，经统一的 `assets/<path>` 路由输出，适合嵌入 layuiAdmin 等后台框架，并复用同一组 JSON 接口。
+- 内嵌页面示例位于 `theme/view/iframe.html`，外层保留站点导航与页脚，用 layui 表格列出 `iframe/template`、`iframe/category` 两个内容页并在当前页加载预览；示例脚本位于 `theme/assets/js/iframe.js`。
 - 静态资源由 `AssetController` 读取 `theme/assets` 后输出，路径经过 `realpath` 校验并拒绝 `..`，避免目录穿越。
 - 资源响应带 `Cache-Control: public, max-age=86400`，字体、CSS、JS、图片等类型会返回对应的 `Content-Type`。
 - 页面、接口与资源地址由 `StoreCodeditor` 根据 `route.prefix`、`route.segment` 与 `assets` 推导，修改配置后无需改动模板。
@@ -67,6 +69,7 @@ php think vendor:publish
 /store/think-store-codeditor/index
 /store/think-store-codeditor/template
 /store/think-store-codeditor/category
+/store/think-store-codeditor/iframe
 /store/think-store-codeditor/iframe/template
 /store/think-store-codeditor/iframe/category
 /store/think-store-codeditor/assets/iframe/css/iframe.css
@@ -86,6 +89,7 @@ php think vendor:publish
 - 分类管理：编辑器页右上角进入分类管理，layui 数据表格展示分类，支持新增、编辑、删除
 - iframe 模板列表：`/iframe/template` 用 layui 数据表格展示模板，支持搜索、分类筛选、查看、新增与编辑内容；现有接口不支持删除模板
 - iframe 分类管理：`/iframe/category` 用 layui treeTable 展示分类，支持搜索、展开/折叠、新增、编辑与删除；数据含 `pid`/`parent_id` 时自动按父子层级展示
+- 内嵌页面示例：`/iframe` 汇总两个 iframe 内容页，支持预览切换、新窗口打开，并提供嵌入代码示例
 - 分类字段：分类标题、分类名称、分类图片、分类介绍、排序、状态、最后一级、管理员 ID、站点 ID
 - 编辑历史：编辑器页「历史」按钮打开历史抽屉，查看内容快照并还原；保存时可填写修改说明
 - 未保存状态提示与切换确认
@@ -503,6 +507,7 @@ think-store-codeditor/
 │  │  ├─ index.html              # 项目介绍页模板（完整文档）
 │  │  ├─ template.html           # 模板代码编辑器页面模板
 │  │  ├─ category.html           # 分类管理页面模板
+│  │  ├─ iframe.html             # 内嵌页面示例（列表 + 预览）
 │  │  └─ iframe/
 │  │     ├─ template.html        # iframe 版模板列表页
 │  │     └─ category.html        # iframe 版分类管理页
@@ -513,6 +518,8 @@ think-store-codeditor/
 │     │  └─ js/
 │     │     ├─ category.js       # iframe 分类管理脚本
 │     │     └─ template.js       # iframe 模板列表脚本
+│     ├─ js/common.js            # 站点导航折叠脚本
+│     ├─ js/iframe.js            # 内嵌页面示例脚本
 │     ├─ js/codeditor.js         # 编辑器页面脚本
 │     ├─ js/category.js          # 分类管理页面脚本
 │     ├─ js/history.js           # 编辑历史抽屉与还原脚本
@@ -556,6 +563,7 @@ php tests/verify.php
 - 路由文件、服务文件、控制器、渲染器与前端资源的关键实现
 - `StoreCodeditor` 在默认、空前缀、空命名空间、自定义 segment 与绝对 assets 下的地址推导
 - `theme/view` 与 `theme/view/iframe` 的完整文档结构、页面变量、layui 数据表格与 assets/iframe 资源路由引用
+- 内嵌页面示例列表、预览切换脚本与 layui 导航折叠脚本
 - iframe 页面的 layuiAdmin 原版结构、treeTable/table 渲染、增改删入口与接口配置
 - `session` 操作人配置与 `Operator` 上下文，模板、分类、历史三张表共用
 - 编辑历史的配置、历史模型与仓储、三个接口、保存事务、页面历史入口与还原脚本
