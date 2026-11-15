@@ -1,23 +1,19 @@
 <body class="codeditor-page{if condition="$active == 'category'"} codeditor-admin{/if}{if condition="$active == 'intro'"} codeditor-intro{/if}">
 <div class="codeditor-shell">
     <header class="codeditor-header">
-        <div class="codeditor-brand">
-            <span class="codeditor-brand__logo">TP</span>
-            <div class="codeditor-brand__text">
-                <h1>{$title}</h1>
-                <p>ThinkPHP 8 · 模板代码编辑器</p>
-            </div>
-        </div>
-        <div class="codeditor-actions">
-            <span class="codeditor-version">v{$version}</span>
-            <a class="layui-btn layui-btn-sm layui-btn-primary{if condition="$active == 'intro'"} layui-btn-normal{/if}" href="{$home}">
-                <i class="layui-icon layui-icon-home"></i> 介绍
+        <div class="codeditor-container codeditor-header__inner">
+            <a class="codeditor-brand" href="{$home}">
+                <span class="codeditor-brand__mark"><i class="layui-icon layui-icon-console"></i></span>
+                <span class="codeditor-brand__name">Codeditor<small>THINK STORE CODEDITOR</small></span>
             </a>
-            <a class="layui-btn layui-btn-sm layui-btn-primary{if condition="$active == 'template'"} layui-btn-normal{/if}" href="{$template}">
-                <i class="layui-icon layui-icon-edit"></i> 模板编辑
-            </a>
-            <a class="layui-btn layui-btn-sm layui-btn-primary{if condition="$active == 'category'"} layui-btn-normal{/if}" href="{$category}">
-                <i class="layui-icon layui-icon-list"></i> 分类管理
-            </a>
+            <nav class="codeditor-nav" id="codeditor-nav">
+                <a class="{if condition="$active == 'intro'"}is-active{/if}" href="{$home}">介绍</a>
+                <a class="{if condition="$active == 'template'"}is-active{/if}" href="{$template}">模板编辑</a>
+                <a class="{if condition="$active == 'category'"}is-active{/if}" href="{$category}">分类管理</a>
+            </nav>
+            <span class="codeditor-source"><i class="layui-icon layui-icon-engine"></i> v{$version}</span>
+            <button type="button" class="codeditor-nav-toggle" id="codeditor-nav-toggle" aria-label="打开导航" aria-expanded="false" aria-controls="codeditor-nav">
+                <i class="layui-icon layui-icon-spread-left"></i>
+            </button>
         </div>
     </header>

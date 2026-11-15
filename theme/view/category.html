@@ -2,21 +2,34 @@
 {include file="layout/header" /}
 
 <main class="codeditor-admin__body">
-    <div class="codeditor-admin__card">
-        <div class="codeditor-admin__toolbar">
-            <div class="codeditor-admin__search">
-                <input type="text" id="category-search" class="layui-input" placeholder="按 ID、标题或名称筛选">
+    <div class="codeditor-container codeditor-admin__inner">
+        <div class="codeditor-admin__lead">
+            <div>
+                <span class="codeditor-eyebrow">Category</span>
+                <h2>模板分类管理</h2>
+                <p>维护模板分类，支持新增、编辑、删除与排序；操作人与站点由主项目 Session 统一写入。</p>
             </div>
-            <div class="codeditor-admin__actions">
-                <button type="button" class="layui-btn layui-btn-sm layui-btn-primary" id="btn-category-refresh">
-                    <i class="layui-icon layui-icon-refresh"></i> 刷新
-                </button>
-                <button type="button" class="layui-btn layui-btn-sm" id="btn-category-create">
-                    <i class="layui-icon layui-icon-add-1"></i> 新增分类
-                </button>
-            </div>
+            <a class="codeditor-btn codeditor-btn--outline" href="{$template}">
+                <i class="layui-icon layui-icon-edit"></i> 返回模板编辑器
+            </a>
         </div>
-        <table id="category-table" lay-filter="category-table"></table>
+
+        <div class="codeditor-admin__card">
+            <div class="codeditor-admin__toolbar">
+                <div class="codeditor-admin__search">
+                    <input type="text" id="category-search" class="layui-input" placeholder="按 ID、标题或名称筛选">
+                </div>
+                <div class="codeditor-admin__actions">
+                    <button type="button" class="codeditor-btn codeditor-btn--outline codeditor-btn--sm" id="btn-category-refresh">
+                        <i class="layui-icon layui-icon-refresh"></i> 刷新
+                    </button>
+                    <button type="button" class="codeditor-btn codeditor-btn--primary codeditor-btn--sm" id="btn-category-create">
+                        <i class="layui-icon layui-icon-add-1"></i> 新增分类
+                    </button>
+                </div>
+            </div>
+            <table id="category-table" lay-filter="category-table"></table>
+        </div>
     </div>
 </main>
 
@@ -78,20 +91,6 @@
                             <option value="0" selected>否</option>
                             <option value="1">是</option>
                         </select>
-                    </div>
-                </div>
-            </div>
-            <div class="layui-form-item">
-                <div class="layui-inline">
-                    <label class="layui-form-label">管理员 ID</label>
-                    <div class="layui-input-inline">
-                        <input type="number" name="admin_id" class="layui-input" value="0" min="0">
-                    </div>
-                </div>
-                <div class="layui-inline">
-                    <label class="layui-form-label">站点 ID</label>
-                    <div class="layui-input-inline">
-                        <input type="number" name="site_id" class="layui-input" value="0" min="0">
                     </div>
                 </div>
             </div>

@@ -1,111 +1,194 @@
 {include file="layout/head" /}
 {include file="layout/header" /}
 
-<div class="codeditor-intro-body">
+<main class="codeditor-intro-body">
     <section class="codeditor-hero">
-        <p class="codeditor-eyebrow">youvision/think-store-codeditor</p>
-        <h2 class="codeditor-hero__title">ThinkPHP 8 模板代码编辑器</h2>
-        <p class="codeditor-hero__desc">
-            在浏览器中编辑 HTML + PHP 混合模板：包内 think-view 渲染页面，Ace 提供混合高亮，
-            layui 数据表格管理模板与分类，编辑历史支持查看与还原。
-        </p>
-        <p class="codeditor-hero__actions">
-            <a class="layui-btn layui-btn-normal" href="{$template}">
-                <i class="layui-icon layui-icon-edit"></i> 打开模板编辑器
-            </a>
-            <a class="layui-btn layui-btn-primary" href="{$category}">
-                <i class="layui-icon layui-icon-list"></i> 分类管理
-            </a>
-        </p>
-    </section>
+        <div class="codeditor-container codeditor-hero__grid">
+            <div class="codeditor-hero__main">
+                <span class="codeditor-badge"><i class="layui-icon layui-icon-engine"></i> ThinkPHP 8 · Layui · v{$version}</span>
+                <p class="codeditor-kicker">Template IDE</p>
+                <h1 class="codeditor-hero__title">Think Store Codeditor</h1>
+                <p class="codeditor-hero__desc">
+                    在浏览器中编辑 HTML + PHP 混合模板：Ace 提供混合高亮，layui 数据表格管理模板与分类，
+                    包内 think-view 渲染页面，编辑历史支持查看与还原。
+                </p>
+                <div class="codeditor-hero__tags">
+                    <span>HTML + PHP</span>
+                    <span class="is-ghost">ace/mode/php</span>
+                    <span class="is-ghost">layui 数据表格</span>
+                    <span class="is-ghost">编辑历史</span>
+                </div>
+                <p class="codeditor-hero__actions">
+                    <a class="codeditor-btn codeditor-btn--primary" href="{$template}">
+                        <i class="layui-icon layui-icon-edit"></i> 打开模板编辑器
+                    </a>
+                    <a class="codeditor-btn codeditor-btn--ghost" href="{$category}">
+                        <i class="layui-icon layui-icon-list"></i> 分类管理
+                    </a>
+                </p>
+            </div>
 
-    <section class="codeditor-intro-section">
-        <div class="codeditor-intro-cards">
-            <div class="layui-card codeditor-intro-card">
-                <div class="layui-card-header">包内视图</div>
-                <div class="layui-card-body">
-                    <p>theme/view 下的模板由包内 View 渲染器通过 think-view 直接输出，主项目不需要复制视图文件。</p>
-                    <p class="codeditor-intro-card__meta">topthink/think-view · 缓存前缀 codeditor_</p>
+            <aside class="codeditor-hero__side">
+                <div class="codeditor-glass">
+                    <div class="codeditor-glass__head">
+                        <span class="codeditor-eyebrow">Preview</span>
+                        <span class="codeditor-code">template/default/index.html</span>
+                    </div>
+                    <pre class="codeditor-code-preview"><code>&lt;!DOCTYPE html&gt;
+&lt;html lang="zh-CN"&gt;
+&lt;head&gt;
+    &lt;meta charset="utf-8"&gt;
+    &lt;title&gt;&#36;title&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;h1&gt;Hello ThinkPHP&lt;/h1&gt;
+    &lt;p&gt;&#123;&#36;content&#125;&lt;/p&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+                    <div class="codeditor-glass__foot">
+                        <span><i class="layui-icon layui-icon-circle-dot"></i> ace/mode/php</span>
+                        <span>UTF-8 · LF</span>
+                    </div>
                 </div>
-            </div>
-            <div class="layui-card codeditor-intro-card">
-                <div class="layui-card-header">包内静态资源</div>
-                <div class="layui-card-body">
-                    <p>layui、Ace 与页面资源由 assets 路由直接读取 theme/assets 输出，路径经过 realpath 校验并拒绝目录穿越。</p>
-                    <p class="codeditor-intro-card__meta">{$assets}/&lt;path&gt; · 缓存 1 天</p>
-                </div>
-            </div>
-            <div class="layui-card codeditor-intro-card">
-                <div class="layui-card-header">模板与分类</div>
-                <div class="layui-card-body">
-                    <p>模板列表只返回 id、title、cid，不读取 newstext；分类独立管理，分类表为 template_category。</p>
-                    <p class="codeditor-intro-card__meta">GET {$templateApi}/read · GET {$categoryApi}/read</p>
-                </div>
-            </div>
-            <div class="layui-card codeditor-intro-card">
-                <div class="layui-card-header">编辑历史</div>
-                <div class="layui-card-body">
-                    <p>每次保存写入完整内容快照，使用 newstext_hash 去重；历史抽屉支持查看与还原。</p>
-                    <p class="codeditor-intro-card__meta">GET {$templateApi}/history · POST {$templateApi}/history/restore</p>
-                </div>
-            </div>
+            </aside>
         </div>
     </section>
 
-    <section class="codeditor-intro-section">
-        <h3 class="codeditor-intro-section__title">路由</h3>
-        <table class="layui-table codeditor-intro-table">
-            <colgroup>
-                <col width="90">
-                <col width="360">
-                <col width="160">
-                <col width="90">
-            </colgroup>
-            <thead>
-            <tr>
-                <th>方法</th>
-                <th>地址</th>
-                <th>说明</th>
-                <th>类型</th>
-            </tr>
-            </thead>
-            <tbody>
-            {volist name="routes" id="route"}
-            <tr>
-                <td><span class="codeditor-method">{$route.method}</span></td>
-                <td><code>{$route.path}</code></td>
-                <td>{$route.name}</td>
-                <td>{$route.type}</td>
-            </tr>
-            {/volist}
-            </tbody>
-        </table>
-    </section>
+    <div class="codeditor-container codeditor-content">
+        <section class="codeditor-metrics">
+            <article class="codeditor-metric">
+                <span class="codeditor-metric__icon"><i class="layui-icon layui-icon-template-1"></i></span>
+                <div>
+                    <span class="codeditor-metric__label">模板字段</span>
+                    <strong>id / title / cid</strong>
+                </div>
+            </article>
+            <article class="codeditor-metric">
+                <span class="codeditor-metric__icon"><i class="layui-icon layui-icon-list"></i></span>
+                <div>
+                    <span class="codeditor-metric__label">分类表</span>
+                    <strong>template_category</strong>
+                </div>
+            </article>
+            <article class="codeditor-metric">
+                <span class="codeditor-metric__icon"><i class="layui-icon layui-icon-time"></i></span>
+                <div>
+                    <span class="codeditor-metric__label">编辑历史</span>
+                    <strong>完整快照 · 去重</strong>
+                </div>
+            </article>
+            <article class="codeditor-metric">
+                <span class="codeditor-metric__icon"><i class="layui-icon layui-icon-console"></i></span>
+                <div>
+                    <span class="codeditor-metric__label">包内路由</span>
+                    <strong>assets 直出资源</strong>
+                </div>
+            </article>
+        </section>
 
-    <section class="codeditor-intro-section">
-        <h3 class="codeditor-intro-section__title">包信息</h3>
-        <table class="layui-table codeditor-intro-table">
-            <tbody>
-            {volist name="meta" id="item"}
-            <tr>
-                <th class="codeditor-intro-table__label">{$item.label}</th>
-                <td>{$item.value}</td>
-            </tr>
-            {/volist}
-            </tbody>
-        </table>
-    </section>
+        <section class="codeditor-section">
+            <div class="codeditor-section__head">
+                <div>
+                    <span class="codeditor-eyebrow">Features</span>
+                    <h2>为模板编辑准备的能力</h2>
+                    <p>页面、接口与静态资源全部由包内提供，主项目不需要复制视图或资源文件。</p>
+                </div>
+            </div>
+            <div class="codeditor-card-grid">
+                <article class="codeditor-card">
+                    <div class="codeditor-card__head">
+                        <span class="codeditor-card__icon"><i class="layui-icon layui-icon-template-1"></i></span>
+                        <h3>包内视图</h3>
+                    </div>
+                    <p>theme/view 下的模板由包内 View 渲染器通过 think-view 直接输出，介绍页、编辑器页与分类页复用 layout 片段。</p>
+                    <p class="codeditor-card__meta">topthink/think-view · 缓存前缀 codeditor_</p>
+                </article>
+                <article class="codeditor-card">
+                    <div class="codeditor-card__head">
+                        <span class="codeditor-card__icon"><i class="layui-icon layui-icon-edit"></i></span>
+                        <h3>模板编辑器</h3>
+                    </div>
+                    <p>Ace Editor 的 ace/mode/php 模式，支持 HTML 与 PHP 混合高亮、自动换行、行号与括号匹配。</p>
+                    <p class="codeditor-card__meta">GET {$templateApi}/read · POST {$templateApi}/update</p>
+                </article>
+                <article class="codeditor-card">
+                    <div class="codeditor-card__head">
+                        <span class="codeditor-card__icon"><i class="layui-icon layui-icon-list"></i></span>
+                        <h3>分类管理</h3>
+                    </div>
+                    <p>layui 数据表格展示分类，支持新增、编辑、删除与排序，操作人与站点由主项目 Session 统一提供。</p>
+                    <p class="codeditor-card__meta">GET {$categoryApi}/read · POST {$categoryApi}/update</p>
+                </article>
+                <article class="codeditor-card">
+                    <div class="codeditor-card__head">
+                        <span class="codeditor-card__icon"><i class="layui-icon layui-icon-time"></i></span>
+                        <h3>编辑历史</h3>
+                    </div>
+                    <p>保存时写入完整内容快照，使用 newstext_hash 去重；历史抽屉支持查看快照与一键还原。</p>
+                    <p class="codeditor-card__meta">GET {$templateApi}/history · POST {$templateApi}/history/restore</p>
+                </article>
+            </div>
+        </section>
 
-    <section class="codeditor-intro-section">
-        <h3 class="codeditor-intro-section__title">快速开始</h3>
-        <pre class="codeditor-intro-code"><code>composer require youvision/think-store-codeditor
+        <section class="codeditor-section">
+            <div class="codeditor-section__head">
+                <div>
+                    <span class="codeditor-eyebrow">Endpoints</span>
+                    <h2>路由与接口</h2>
+                    <p>路由由服务提供者在 boot 阶段注册，默认前缀 /store/think-store-codeditor，宿主项目无需复制路由文件。</p>
+                </div>
+                <span class="codeditor-section__tip">GET {$templateApi}/read · GET {$categoryApi}/read</span>
+            </div>
+            <div class="codeditor-api-grid">
+                {volist name="routes" id="route"}
+                <article class="codeditor-api-card">
+                    <div class="codeditor-api-card__head">
+                        <span class="codeditor-method">{$route.method}</span>
+                        <code>{$route.path}</code>
+                    </div>
+                    <p>{$route.name} · {$route.type}</p>
+                </article>
+                {/volist}
+            </div>
+        </section>
 
-php think service:discover
-php think vendor:publish
+        <section class="codeditor-section">
+            <div class="codeditor-section__head">
+                <div>
+                    <span class="codeditor-eyebrow">Package</span>
+                    <h2>包信息</h2>
+                    <p>依赖、版本与运行环境。</p>
+                </div>
+            </div>
+            <div class="codeditor-meta-grid">
+                {volist name="meta" id="item"}
+                <div class="codeditor-meta">
+                    <span>{$item.label}</span>
+                    <strong>{$item.value}</strong>
+                </div>
+                {/volist}
+            </div>
+        </section>
 
-# 打开介绍页：{$home}
-# 打开模板编辑器：{$template}</code></pre>
-    </section>
-</div>
+        <section class="codeditor-section">
+            <div class="codeditor-cta">
+                <div class="codeditor-cta__text">
+                    <span class="codeditor-eyebrow">Get started</span>
+                    <h2>从 Composer 开始，接入模板编辑器</h2>
+                    <p>youvision/think-store-codeditor 以 Composer 包形式发布，可作为 think-store 发布包接入商店；路由、视图与静态资源都由包内提供。</p>
+                    <pre class="codeditor-cta__code"><code>composer require youvision/think-store-codeditor</code></pre>
+                </div>
+                <div class="codeditor-cta__actions">
+                    <a class="codeditor-btn codeditor-btn--primary" href="{$template}">
+                        <i class="layui-icon layui-icon-edit"></i> 打开模板编辑器
+                    </a>
+                    <a class="codeditor-btn codeditor-btn--ghost" href="https://github.com/indiboy-create/think-store-codeditor" target="_blank" rel="noopener">
+                        <i class="layui-icon layui-icon-log"></i> GitHub 仓库
+                    </a>
+                </div>
+            </div>
+        </section>
+    </div>
+</main>
 
 {include file="layout/footer" /}
