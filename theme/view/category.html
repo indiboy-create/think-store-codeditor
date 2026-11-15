@@ -11,7 +11,7 @@
 </head>
 <body class="codeditor-page codeditor-category codeditor-admin">
 <div class="codeditor-shell">
-    <header class="codeditor-header">
+    <header class="layui-header codeditor-header">
         <div class="layui-container codeditor-header__inner">
             <a class="codeditor-brand" href="{$home}">
                 <span class="codeditor-brand__mark"><i class="layui-icon layui-icon-console"></i></span>
@@ -25,9 +25,8 @@
             </ul>
             <div class="codeditor-header__actions">
                 <a class="codeditor-github" href="https://github.com/indiboy-create/think-store-codeditor" target="_blank" rel="noopener">
-                    <i class="layui-icon layui-icon-log"></i><span>GitHub</span>
+                    <i class="layui-icon layui-icon-github"></i><span>GitHub</span>
                 </a>
-
             </div>
             <button type="button" class="codeditor-nav-toggle" id="codeditor-nav-toggle" aria-label="打开导航" aria-expanded="false" aria-controls="codeditor-nav">
                 <i class="layui-icon layui-icon-spread-left"></i>
@@ -35,48 +34,45 @@
         </div>
     </header>
 
-<section class="codeditor-page-head">
-    <div class="codeditor-container codeditor-page-head__inner">
-        <div>
-            <div class="codeditor-breadcrumb">
-                <a href="{$home}">项目介绍</a>
-                <i class="layui-icon layui-icon-right"></i>
-                <span>分类管理</span>
-            </div>
-            <h1 class="codeditor-page-title">模板分类管理</h1>
-            <p class="codeditor-page-desc">维护模板分类，支持新增、编辑、删除与排序；操作人与站点由主项目 Session 统一写入。</p>
-        </div>
-        <div class="codeditor-page-head__actions">
-            <span class="codeditor-badge codeditor-badge--soft"><i class="layui-icon layui-icon-list"></i> template_category</span>
-            <a class="codeditor-btn codeditor-btn--outline codeditor-btn--sm" href="{$template}">
+<section class="codeditor-hero codeditor-hero--compact">
+    <div class="layui-container">
+        <span class="codeditor-eyebrow">Category · template_category</span>
+        <h1 class="codeditor-hero__compact-title"><em>模板</em>分类管理</h1>
+        <p class="codeditor-hero__compact-desc">维护模板分类，支持新增、编辑、删除与排序；操作人与站点由主项目 Session 统一写入。</p>
+        <p class="codeditor-hero__compact-actions">
+            <a class="layui-btn layui-btn-normal" href="{$template}">
                 <i class="layui-icon layui-icon-edit"></i> 返回模板编辑器
             </a>
-        </div>
+            <a class="layui-btn layui-btn-primary" href="{$home}">
+                <i class="layui-icon layui-icon-return"></i> 项目介绍
+            </a>
+        </p>
     </div>
 </section>
 
 <main class="codeditor-admin__body">
-    <div class="codeditor-container">
-        <div class="codeditor-table-card layui-card">
-            <div class="layui-card-header">
-                <span>模板分类</span>
-                <span class="codeditor-table-count">template_category</span>
-            </div>
-            <div class="layui-card-body codeditor-table-wrap">
-                <div class="codeditor-admin__toolbar">
+    <div class="layui-container">
+        <div class="codeditor-admin__card layui-card">
+            <div class="layui-card-header codeditor-admin__head">
+                <div class="codeditor-admin__title">
+                    <i class="layui-icon layui-icon-list"></i>
+                    <span>模板分类</span>
+                    <span class="codeditor-table-count">template_category</span>
+                </div>
+                <div class="codeditor-admin__actions">
                     <div class="codeditor-admin__search">
                         <i class="layui-icon layui-icon-search"></i>
-                        <input type="text" id="category-search" class="layui-input" placeholder="按 ID、标题或名称筛选">
+                        <input type="text" id="category-search" class="layui-input" placeholder="按 ID、标题或名称筛选" aria-label="搜索分类">
                     </div>
-                    <div class="codeditor-admin__actions">
-                        <button type="button" class="codeditor-btn codeditor-btn--outline codeditor-btn--sm" id="btn-category-refresh">
-                            <i class="layui-icon layui-icon-refresh"></i> 刷新
-                        </button>
-                        <button type="button" class="codeditor-btn codeditor-btn--primary codeditor-btn--sm" id="btn-category-create">
-                            <i class="layui-icon layui-icon-add-1"></i> 新增分类
-                        </button>
-                    </div>
+                    <button type="button" class="layui-btn layui-btn-sm layui-btn-primary" id="btn-category-refresh">
+                        <i class="layui-icon layui-icon-refresh"></i> 刷新
+                    </button>
+                    <button type="button" class="layui-btn layui-btn-sm layui-btn-normal" id="btn-category-create">
+                        <i class="layui-icon layui-icon-add-1"></i> 新增分类
+                    </button>
                 </div>
+            </div>
+            <div class="layui-card-body codeditor-admin__table">
                 <table id="category-table" lay-filter="category-table"></table>
             </div>
         </div>
@@ -159,10 +155,24 @@ window.CODEDITOR_CATEGORY = {
 };
 </script>
 
-<footer class="codeditor-footer">
-    <div class="codeditor-container">
-        <div class="codeditor-footer__grid">
-            <div>
+<div class="layui-container">
+    <section class="layui-card codeditor-cta">
+        <div class="codeditor-cta__text">
+            <span class="codeditor-eyebrow">Ecosystem</span>
+            <h2 class="codeditor-cta__title">从 ThinkPHP-PanGu 开始，按需组合</h2>
+            <p class="codeditor-cta__desc">所有组件均以 Composer 包形式发布，仓库、README 与 Issue 都在 GitHub 上。遇到问题或想补充能力，可以直接提 Issue。</p>
+        </div>
+        <div class="codeditor-cta__actions">
+            <a class="layui-btn layui-btn-normal" href="https://indiboy-create.github.io/ThinkPHP-PanGu/" target="_blank" rel="noopener"><i class="layui-icon layui-icon-github"></i> GitHub</a>
+            <a class="layui-btn layui-btn-primary" href="https://indiboy-create.github.io/ThinkPHP-PanGu/packages.html" target="_blank" rel="noopener">挑一个组件</a>
+        </div>
+    </section>
+</div>
+
+<footer class="layui-footer codeditor-footer">
+    <div class="layui-container">
+        <div class="layui-row layui-col-space30 codeditor-footer__grid">
+            <div class="layui-col-md4">
                 <a class="codeditor-brand codeditor-footer__brand" href="{$home}">
                     <span class="codeditor-brand__mark"><i class="layui-icon layui-icon-console"></i></span>
                     <span class="codeditor-brand__name">Codeditor<small>THINK STORE CODEDITOR</small></span>
@@ -171,7 +181,7 @@ window.CODEDITOR_CATEGORY = {
                     youvision/think-store-codeditor：面向 ThinkPHP 8 的模板代码编辑器，包内提供视图、静态资源、模板编辑、分类管理与编辑历史。
                 </p>
             </div>
-            <div>
+            <div class="layui-col-md2">
                 <h4>页面</h4>
                 <div class="codeditor-footer__links">
                     <a href="{$home}">项目介绍</a>
@@ -180,7 +190,7 @@ window.CODEDITOR_CATEGORY = {
                     <a href="{$iframe}">内嵌示例</a>
                 </div>
             </div>
-            <div>
+            <div class="layui-col-md3">
                 <h4>接口</h4>
                 <div class="codeditor-footer__links">
                     <a href="{$templateApi}/read">读取模板</a>
@@ -188,7 +198,7 @@ window.CODEDITOR_CATEGORY = {
                     <a href="{$templateApi}/history">编辑历史</a>
                 </div>
             </div>
-            <div>
+            <div class="layui-col-md3">
                 <h4>资源</h4>
                 <div class="codeditor-footer__links">
                     <a href="https://github.com/indiboy-create/think-store-codeditor" target="_blank" rel="noopener">GitHub 仓库</a>

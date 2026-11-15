@@ -11,7 +11,7 @@
 </head>
 <body class="codeditor-page codeditor-template">
 <div class="codeditor-shell">
-    <header class="codeditor-header">
+    <header class="layui-header codeditor-header">
         <div class="layui-container codeditor-header__inner">
             <a class="codeditor-brand" href="{$home}">
                 <span class="codeditor-brand__mark"><i class="layui-icon layui-icon-console"></i></span>
@@ -25,9 +25,8 @@
             </ul>
             <div class="codeditor-header__actions">
                 <a class="codeditor-github" href="https://github.com/indiboy-create/think-store-codeditor" target="_blank" rel="noopener">
-                    <i class="layui-icon layui-icon-log"></i><span>GitHub</span>
+                    <i class="layui-icon layui-icon-github"></i><span>GitHub</span>
                 </a>
-
             </div>
             <button type="button" class="codeditor-nav-toggle" id="codeditor-nav-toggle" aria-label="打开导航" aria-expanded="false" aria-controls="codeditor-nav">
                 <i class="layui-icon layui-icon-spread-left"></i>
@@ -35,52 +34,54 @@
         </div>
     </header>
 
-<section class="codeditor-page-head">
-    <div class="codeditor-container codeditor-page-head__inner">
-        <div>
-            <div class="codeditor-breadcrumb">
-                <a href="{$home}">项目介绍</a>
-                <i class="layui-icon layui-icon-right"></i>
-                <span>模板编辑</span>
-            </div>
-            <h1 class="codeditor-page-title">模板代码编辑器</h1>
-            <p class="codeditor-page-desc">左侧选择模板，右侧编辑 HTML + PHP 内容；保存时写入快照，历史面板可查看与还原。</p>
-        </div>
-        <div class="codeditor-page-head__actions">
-            <span class="codeditor-badge codeditor-badge--soft"><i class="layui-icon layui-icon-console"></i> ace/mode/php</span>
-            <a class="codeditor-btn codeditor-btn--outline codeditor-btn--sm" href="{$category}">
+<section class="codeditor-hero codeditor-hero--compact">
+    <div class="layui-container">
+        <span class="codeditor-eyebrow">Template · ace/mode/php</span>
+        <h1 class="codeditor-hero__compact-title"><em>模板</em>代码编辑器</h1>
+        <p class="codeditor-hero__compact-desc">左侧选择模板，右侧编辑 HTML + PHP 内容；保存时写入快照，历史面板可查看与还原。</p>
+        <p class="codeditor-hero__compact-actions">
+            <a class="layui-btn layui-btn-normal" href="{$category}">
                 <i class="layui-icon layui-icon-list"></i> 分类管理
             </a>
-        </div>
+            <a class="layui-btn layui-btn-primary" href="{$home}">
+                <i class="layui-icon layui-icon-return"></i> 返回项目介绍
+            </a>
+        </p>
     </div>
 </section>
 
-<div class="codeditor-body">
-    <aside class="codeditor-sidebar">
-        <div class="codeditor-sidebar__head">
-            <span>模板列表</span>
-            <span class="codeditor-count" id="tpl-count">0</span>
+<div class="codeditor-workspace">
+    <aside class="codeditor-pane codeditor-pane--list layui-card">
+        <div class="layui-card-header codeditor-pane__head">
+            <div class="codeditor-pane__title">
+                <i class="layui-icon layui-icon-list"></i>
+                <span>模板列表</span>
+                <span class="codeditor-count" id="tpl-count">0</span>
+            </div>
+            <button type="button" class="codeditor-icon-btn" id="btn-refresh" title="刷新模板列表" aria-label="刷新模板列表">
+                <i class="layui-icon layui-icon-refresh"></i>
+            </button>
         </div>
-        <div class="codeditor-sidebar__search">
-            <input type="text" id="tpl-search" class="layui-input" placeholder="按 ID、标题或分类筛选">
+        <div class="codeditor-pane__toolbar">
+            <div class="codeditor-search">
+                <i class="layui-icon layui-icon-search"></i>
+                <input type="text" id="tpl-search" class="layui-input" placeholder="按 ID、标题或分类筛选" aria-label="搜索模板">
+            </div>
         </div>
-        <div class="codeditor-table">
+        <div class="layui-card-body codeditor-pane__body codeditor-table">
             <table id="tpl-table" lay-filter="tpl-table"></table>
         </div>
     </aside>
 
-    <section class="codeditor-main">
-        <div class="codeditor-toolbar">
-            <div class="codeditor-toolbar__left">
+    <section class="codeditor-pane codeditor-pane--editor layui-card">
+        <div class="layui-card-header codeditor-editor-head">
+            <div class="codeditor-editor-head__left">
                 <span class="codeditor-dot" id="dirty-dot"></span>
                 <span class="codeditor-current" id="current-title">未选择模板</span>
-            </div>
-            <div class="codeditor-toolbar__right">
                 <span class="codeditor-chip">ace/mode/php</span>
                 <span class="codeditor-chip" id="char-count">0 字符</span>
-                <button type="button" class="layui-btn layui-btn-xs layui-btn-primary" id="btn-refresh">
-                    <i class="layui-icon layui-icon-refresh"></i> 刷新
-                </button>
+            </div>
+            <div class="codeditor-editor-head__right">
                 <button type="button" class="layui-btn layui-btn-xs layui-btn-primary" id="btn-history" disabled>
                     <i class="layui-icon layui-icon-time"></i> 历史
                 </button>
@@ -92,7 +93,7 @@
                 </button>
             </div>
         </div>
-        <div class="codeditor-editor">
+        <div class="layui-card-body codeditor-editor">
             <div id="editor"></div>
         </div>
         <footer class="codeditor-status">
@@ -101,6 +102,66 @@
         </footer>
     </section>
 </div>
+
+<div class="layui-container">
+    <section class="layui-card codeditor-cta">
+        <div class="codeditor-cta__text">
+            <span class="codeditor-eyebrow">Ecosystem</span>
+            <h2 class="codeditor-cta__title">从 ThinkPHP-PanGu 开始，按需组合</h2>
+            <p class="codeditor-cta__desc">所有组件均以 Composer 包形式发布，仓库、README 与 Issue 都在 GitHub 上。遇到问题或想补充能力，可以直接提 Issue。</p>
+        </div>
+        <div class="codeditor-cta__actions">
+            <a class="layui-btn layui-btn-normal" href="https://indiboy-create.github.io/ThinkPHP-PanGu/" target="_blank" rel="noopener"><i class="layui-icon layui-icon-github"></i> GitHub</a>
+            <a class="layui-btn layui-btn-primary" href="https://indiboy-create.github.io/ThinkPHP-PanGu/packages.html" target="_blank" rel="noopener">挑一个组件</a>
+        </div>
+    </section>
+</div>
+
+<footer class="layui-footer codeditor-footer">
+    <div class="layui-container">
+        <div class="layui-row layui-col-space30 codeditor-footer__grid">
+            <div class="layui-col-md4">
+                <a class="codeditor-brand codeditor-footer__brand" href="{$home}">
+                    <span class="codeditor-brand__mark"><i class="layui-icon layui-icon-console"></i></span>
+                    <span class="codeditor-brand__name">Codeditor<small>THINK STORE CODEDITOR</small></span>
+                </a>
+                <p class="codeditor-footer__desc">
+                    youvision/think-store-codeditor：面向 ThinkPHP 8 的模板代码编辑器，包内提供视图、静态资源、模板编辑、分类管理与编辑历史。
+                </p>
+            </div>
+            <div class="layui-col-md2">
+                <h4>页面</h4>
+                <div class="codeditor-footer__links">
+                    <a href="{$home}">项目介绍</a>
+                    <a href="{$template}">模板编辑</a>
+                    <a href="{$category}">分类管理</a>
+                    <a href="{$iframe}">内嵌示例</a>
+                </div>
+            </div>
+            <div class="layui-col-md3">
+                <h4>接口</h4>
+                <div class="codeditor-footer__links">
+                    <a href="{$templateApi}/read">读取模板</a>
+                    <a href="{$categoryApi}/read">读取分类</a>
+                    <a href="{$templateApi}/history">编辑历史</a>
+                </div>
+            </div>
+            <div class="layui-col-md3">
+                <h4>资源</h4>
+                <div class="codeditor-footer__links">
+                    <a href="https://github.com/indiboy-create/think-store-codeditor" target="_blank" rel="noopener">GitHub 仓库</a>
+                    <a href="https://github.com/indiboy-create/think-store-codeditor#readme" target="_blank" rel="noopener">使用文档</a>
+                    <a href="https://layui.dev/" target="_blank" rel="noopener">Layui 文档</a>
+                    <a href="https://www.thinkphp.cn/" target="_blank" rel="noopener">ThinkPHP 官网</a>
+                </div>
+            </div>
+        </div>
+        <div class="codeditor-footer__bottom">
+            <span>© 2026 youvision/think-store-codeditor</span>
+            <span>Built with ThinkPHP 8 · Layui · Ace</span>
+        </div>
+    </div>
+</footer>
 
 <script type="text/html" id="create-form-tpl">
     <div class="codeditor-create">

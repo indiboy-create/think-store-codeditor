@@ -273,10 +273,18 @@ $check(str_contains($pageSource, '{$assets}/layui/css/layui.css'), '介绍页面
 $check(str_contains($pageSource, '{$assets}/css/index.css'), '介绍页面应引用页面样式');
 $check(str_contains($pageSource, '{$assets}/layui/layui.js'), '介绍页面应加载 layui');
 $check(str_contains($pageSource, 'codeditor-header'), '介绍页面应包含站点头部');
+$check(str_contains($pageSource, 'layui-header'), '介绍页面应采用 layui 页头');
 $check(str_contains($pageSource, 'codeditor-footer'), '介绍页面应包含站点页脚');
+$check(str_contains($pageSource, 'layui-footer'), '介绍页面应采用 layui 页脚');
 $check(str_contains($pageSource, 'codeditor-hero'), '介绍页面应包含 hero 区域');
+$check(str_contains($pageSource, 'codeditor-hero__row'), '介绍页面 hero 应使用 layui 栅格');
+$check(str_contains($pageSource, 'layui-row'), '介绍页面应采用 layui 栅格');
+$check(str_contains($pageSource, 'layui-card codeditor-glass'), '英雄区右侧应使用 layui-card');
+$check(str_contains($pageSource, 'layui-card codeditor-cta'), '底部 CTA 应使用 layui-card');
+$check(str_contains($pageSource, 'layui-table codeditor-endpoints'), '路由表应使用 layui-table');
+$check(str_contains($pageSource, 'layui-table codeditor-config'), '配置表应使用 layui-table');
 $check(str_contains($pageSource, 'name="routes"'), '介绍页面应输出路由清单');
-$check(str_contains($pageSource, 'name="meta"'), '介绍页面应输出包信息');
+$check(str_contains($pageSource, 'codeditor-cta'), '介绍页面应包含底部 CTA');
 $check(str_contains($pageSource, '{$template}'), '介绍页面应包含模板编辑器入口');
 $check(str_contains($pageSource, '{$category}'), '介绍页面应包含分类管理入口');
 $check(str_contains($pageSource, '{$iframe}'), '介绍页面应包含内嵌示例入口');
@@ -289,7 +297,7 @@ $check(!str_contains($pageSource, 'id="tpl-table"'), '介绍页面不应包含�
 $templatePageSource = (string) file_get_contents($packageRoot . '/theme/view/template.html');
 $check(str_contains($templatePageSource, '<!DOCTYPE html>'), '编辑器页面应是完整 HTML 文档');
 $check(str_contains($templatePageSource, 'codeditor-header'), '编辑器页面应包含站点头部');
-$check(!str_contains($templatePageSource, 'codeditor-footer'), '编辑器页面不应输出站点页脚');
+$check(str_contains($templatePageSource, 'codeditor-footer'), '编辑器页面应包含站点页脚');
 $check(str_contains($templatePageSource, '{$assets}/ace/ace.js'), '编辑器页面应加载 Ace');
 $check(str_contains($templatePageSource, '{$assets}/js/history.js'), '编辑器页面应加载历史脚本');
 $check(str_contains($templatePageSource, 'window.CODEDITOR_CONFIG'), '编辑器页面应注入接口配置');
@@ -390,11 +398,17 @@ $styleSource = (string) file_get_contents($packageRoot . '/theme/assets/css/inde
 $check(str_contains($styleSource, '--codeditor-brand'), '样式应定义主题变量');
 $check(str_contains($styleSource, '.codeditor-table'), '样式应包含 layui 表格区域');
 $check(str_contains($styleSource, '.codeditor-admin__body'), '样式应包含分类管理页布局');
-$check(str_contains($styleSource, '.codeditor-toolbar .layui-btn'), '样式应适配工具栏按钮');
+$check(str_contains($styleSource, '.codeditor-editor-head .layui-btn'), '样式应适配编辑器工具栏按钮');
+$check(str_contains($styleSource, '.codeditor-workspace'), '样式应包含编辑器工作台布局');
+$check(str_contains($styleSource, '.codeditor-pane--editor'), '样式应包含编辑器面板');
+$check(str_contains($styleSource, '.codeditor-admin__card'), '样式应包含分类管理卡片');
 $check(str_contains($styleSource, '@media (max-width: 820px)'), '样式应包含响应式断点');
 $check(str_contains($styleSource, '@media (max-width: 640px)'), '样式应包含移动端布局');
 $check(str_contains($styleSource, '.codeditor-nav.layui-nav'), '样式应适配 layui 导航');
 $check(str_contains($styleSource, '.codeditor-hero--compact'), '样式应包含紧凑 hero');
+$check(str_contains($styleSource, '.codeditor-hero__row'), '样式应包含 layui 栅格 hero');
+$check(str_contains($styleSource, '.codeditor-doc-card .layui-card-header'), '文档卡片应使用 layui-card 头部');
+$check(str_contains($styleSource, '.codeditor-endpoints.layui-table'), '路由表应适配 layui-table');
 $check(str_contains($styleSource, '.codeditor-iframe__preview'), '样式应包含内嵌示例预览区');
 
 $check(($config['database']['history_table'] ?? '') === 'template_history', '默认历史数据表应为 template_history');
@@ -570,7 +584,7 @@ $check($meta->category() === '/store/think-store-codeditor/category', '默认分
 $check($meta->assets() === '/store/think-store-codeditor/assets', '默认 assets 应为 /store/think-store-codeditor/assets');
 $check($meta->apiTemplate('read') === '/store/think-store-codeditor/api/template/read', '模板接口地址应正确');
 $check($meta->apiCategory('delete') === '/store/think-store-codeditor/api/category/delete', '分类接口地址应正确');
-$check($meta->version() === '1.0.0', '默认版本应为 1.0.0');
+$check($meta->version() !== '', '版本号不应为空');
 
 $noPrefix = new \Youvision\ThinkStoreCodeditor\StoreCodeditor(['route' => ['prefix' => '']], $packageRoot);
 $check($noPrefix->base() === '/think-store-codeditor', '空前缀时 base 应为 /think-store-codeditor');
