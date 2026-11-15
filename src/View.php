@@ -10,7 +10,8 @@ use think\view\driver\Think;
 /**
  * 包内视图渲染器。
  *
- * 模板目录由 view 配置指定，默认包内 theme/view；也可使用绝对路径。
+ * view 配置为空时使用包内 theme/view；不为空时直接作为模板目录，
+ * 相对路径从项目根目录算起，例如 view/think-store-codeditor。
  * think-view 的 fetch() 直接输出内容，因此用输出缓冲捕获并返回字符串。
  */
 class View
@@ -21,7 +22,7 @@ class View
 
     public function __construct(protected App $app, array $config = [])
     {
-        $this->path = $this->resolvePath((string) ($config['view'] ?? 'view'));
+        $this->path = $this->resolvePath((string) ($config['view'] ?? ''));
     }
 
     /**
@@ -63,21 +64,24 @@ class View
     }
 
     /**
-     * 解析视图目录：相对路径拼接包内 theme，绝对路径原样使用。
+     * 解析模板目录。
+     *
+     * view 留空：包内 theme/view。
+     * view 非空：该值即模板目录，相对路径从项目根目录算起（主项目
+     * view 与 app 同级），例如 view/think-store-codeditor。
      */
     protected function resolvePath(string $view): string
     {
-        $view = trim(str_replace('\\', '/', $view));
+        $view = rtrim(trim($view), '/\\');
 
         if ($view === '') {
-            $view = 'view';
+            return dirname(__DIR__) . '/theme/view/';
         }
 
-        if (str_starts_with($view, '/') || preg_match('#^[A-Za-z]:/#', $view)) {
-            return rtrim($view, '/') . '/';
-        }
+        $absolute = str_starts_with($view, '/') || preg_match('/^[A-Za-z]:[\/\\\\]/', $view) === 1;
+        $root     = $absolute ? '' : $this->app->getRootPath();
 
-        return dirname(__DIR__) . '/theme/' . trim($view, '/') . '/';
+        return rtrim($root . $view, '/\\') . '/';
     }
 
     protected function driver(): Think

@@ -133,7 +133,7 @@ $check(($config['route']['middleware'] ?? null) === [], '默认路由中间件�
 $check(!isset($config['route']['rules']), '路由规则应由 segment 推导，不应保留 route.rules');
 $check(!isset($config['route']['assets']), '静态资源配置应位于顶层 assets');
 $check(($config['assets'] ?? '') === 'assets', '默认静态资源路径应为 assets');
-$check(($config['view'] ?? '') === 'view', '默认视图目录名应为 view');
+$check(($config['view'] ?? 'x') === '', 'view 默认应留空，使用包内 theme/view');
 
 $check(($config['database']['table'] ?? '') === 'template', '默认模板数据表应为 template');
 $check(($config['database']['category_table'] ?? '') === 'template_category', '默认分类数据表应为 template_category');
@@ -239,7 +239,8 @@ $check(!str_contains($templatesSource, 'Db::'), 'Templates 不应使用 Db 原�
 $viewSource = (string) file_get_contents($packageRoot . '/src/View.php');
 $check(str_contains($viewSource, 'use think\\view\\driver\\Think'), '渲染器应使用 think-view 模板驱动');
 $check(str_contains($viewSource, "['view']"), '渲染器应读取 view 配置');
-$check(str_contains($viewSource, "'/theme/'"), '渲染器应拼接包内 theme 目录');
+$check(str_contains($viewSource, "'/theme/view/'"), '渲染器留空时应使用包内 theme/view');
+$check(str_contains($viewSource, 'getRootPath'), '渲染器相对路径应从主项目根目录算起');
 $check(str_contains($viewSource, 'getRuntimePath'), '渲染器应使用主项目运行时目录');
 $check(str_contains($viewSource, 'ob_start'), '渲染器应捕获模板输出');
 

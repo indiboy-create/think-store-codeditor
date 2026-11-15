@@ -53,7 +53,7 @@ php think vendor:publish
 
 ## 页面与静态资源
 
-- 模板位于包内 `theme/view`，由包内 `View` 渲染器通过 think-view 的 `Think` 驱动渲染，不依赖主项目的 `view_path`，也不需要复制到主项目。
+- 模板默认位于包内 `theme/view`，由包内 `View` 渲染器通过 think-view 的 `Think` 驱动渲染，不依赖主项目的 `view_path`，也不需要复制到主项目；可通过 `view` 配置改为主项目模板目录。
 - `theme/view/layout` 存放公共的 head、header 与 footer 片段，介绍页、编辑器页与分类页通过 `{include}` 复用。
 - 静态资源由 `AssetController` 读取 `theme/assets` 后输出，路径经过 `realpath` 校验并拒绝 `..`，避免目录穿越。
 - 资源响应带 `Cache-Control: public, max-age=86400`，字体、CSS、JS、图片等类型会返回对应的 `Content-Type`。
@@ -360,9 +360,9 @@ CREATE TABLE `template_history` (
 | `route.segment` | `think-store-codeditor` | 包内命名空间，留空表示页面直接挂在路由前缀下 |
 | `route.middleware` | `[]` | 应用到整组路由上的中间件，可填写主项目鉴权中间件类名或别名 |
 | `assets` | `assets` | 顶层静态资源地址；相对路径拼在命名空间后，`/` 开头视为外部托管的绝对地址 |
-| `view` | `view` | 顶层视图目录名，相对包内 `theme` 目录；`/` 开头视为绝对路径 |
+| `view` | 留空 | 顶层视图目录；留空使用包内 `theme/view`，非空时该值即模板目录，相对路径从主项目根目录算起 |
 
-`route.segment` 留空时页面落在 `/{prefix}/index`、`/{prefix}/category` 与 `/{prefix}/api/*`；`assets` 留空时回退为 `assets`；`view` 留空时回退为 `view`，即渲染 `theme/view`。
+`route.segment` 留空时页面落在 `/{prefix}/index`、`/{prefix}/category` 与 `/{prefix}/api/*`；`assets` 留空时回退为 `assets`；`view` 留空时使用包内 `theme/view`，填写相对路径（如 `view/think-store-codeditor`）时从主项目根目录算起，`/` 或盘符开头视为绝对路径。
 
 ### database 数据库
 
