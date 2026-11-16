@@ -240,6 +240,7 @@ $check(str_contains($categoryControllerSource, 'function update'), '分类控制
 $check(str_contains($categoryControllerSource, 'function delete'), '分类控制器应实现删除接口');
 $check(str_contains($categoryControllerSource, '$this->codeditor->apiCategory()'), '分类控制器应使用元数据分类接口');
 $check(str_contains($categoryControllerSource, '$this->codeditor->apiTemplate()'), '分类控制器应为页脚提供模板接口地址');
+$check(str_contains($categoryControllerSource, "'iframe'"), '分类管理页面应注入内嵌示例入口地址');
 $check(!str_contains($categoryControllerSource, 'route.rules'), '分类控制器不应再读取 route.rules');
 
 $categorySource = (string) file_get_contents($packageRoot . '/src/TemplateCategory.php');

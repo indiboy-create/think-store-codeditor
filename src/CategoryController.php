@@ -31,6 +31,7 @@ class CategoryController
             'home'        => $this->codeditor->index(),
             'template'    => $this->codeditor->template(),
             'category'    => $this->codeditor->category(),
+            'iframe'      => $this->codeditor->iframe(),
             'assets'      => $this->codeditor->assets(),
             'templateApi' => $this->codeditor->apiTemplate(),
             'categoryApi' => $this->codeditor->apiCategory(),
